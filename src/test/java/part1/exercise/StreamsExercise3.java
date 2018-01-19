@@ -4,7 +4,11 @@ import data.WNPResult;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.function.ToIntFunction;
 import java.util.stream.Stream;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -27,7 +31,7 @@ public class StreamsExercise3 {
         String result = pathStream
                 .flatMap(p -> {
                     try {
-                        return lines(p);
+                        return lines(p, Charset.forName("windows-1251"));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -41,13 +45,11 @@ public class StreamsExercise3 {
                         HashMap::putAll)
                 .entrySet().stream()
                 .filter(e -> e.getValue() >= 10)
-                .sorted((e1, e2) -> {
-                    int res = Integer.compare(e2.getValue(), e1.getValue());
-                    if (res == 0) {
-                        return e1.getKey().compareTo(e2.getKey());
-                    }
-                    return res;
-                })
+                .sorted(
+                        Comparator.comparingInt((ToIntFunction<Map.Entry<String, Integer>>) Map.Entry::getValue)
+                                .reversed()
+                                .thenComparing(Comparator.comparing(Map.Entry::getKey))
+                )
                 .map(e -> e.getKey() + " - " + e.getValue())
                 .collect(Collectors.joining("\n"));
 
