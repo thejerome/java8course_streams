@@ -1,12 +1,14 @@
 package part1.exercise;
 
 import data.Employee;
+import data.Generator;
 import data.JobHistoryEntry;
 import org.junit.Test;
 
 import java.util.List;
 
 import static data.Generator.generateEmployeeList;
+import static java.util.stream.Collectors.toList;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -20,8 +22,9 @@ public class StreamsExercise1 {
 
     @Test
     public void getAllEpamEmployees() {
-        List<Employee> epamEmployees = null;
-        // TODO all persons with experience in epam
+        List<Employee> epamEmployees = generateEmployeeList().stream()
+                .filter(e -> e.getJobHistory().stream().allMatch(j -> "epam".equals(j.getEmployer())))
+                .collect(toList());
 
 
         assertFalse(epamEmployees.toString().contains("employer=google"));
