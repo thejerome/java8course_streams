@@ -1,11 +1,16 @@
 package data;
 
+import com.sun.org.apache.bcel.internal.generic.ALOAD;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -60,7 +65,10 @@ public class Generator {
     }
 
     public static List<Employee> generateEmployeeList() {
-        // TODO
-        throw new UnsupportedOperationException();
+        int maxLength = 10;
+        final int length = ThreadLocalRandom.current().nextInt(maxLength) + 1;
+        return Stream.generate(Generator::generateEmployee)
+                .limit(length)
+                .collect(toList());
     }
 }
