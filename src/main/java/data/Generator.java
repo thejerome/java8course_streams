@@ -60,10 +60,9 @@ public class Generator {
     }
 
     public static List<Employee> generateEmployeeList() {
-        int maxLength = 10;
-        final int length = ThreadLocalRandom.current().nextInt(maxLength) + 1;
+        int maxLength = 20;
         return Stream.generate(Generator::generateEmployee)
-                .limit(length)
+                .limit(maxLength)
                 .collect(toList());
     }
 }
