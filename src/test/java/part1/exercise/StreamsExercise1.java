@@ -12,7 +12,6 @@ import static data.Generator.generateEmployeeList;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class StreamsExercise1 {
     private static final List<Employee> EMPLOYEES;
