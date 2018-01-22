@@ -20,7 +20,7 @@ public class StreamsExercise3 {
 
     @Test
     public void warAndPeace() throws IOException {
-        Map<String, Long> wordCount = Stream.of(
+        String result = Stream.of(
                 Paths.get("WAP12.txt"),
                 Paths.get("WAP34.txt")
         )
@@ -37,9 +37,8 @@ public class StreamsExercise3 {
                 .map(l -> l.split("[^\\p{javaLowerCase}]+"))
                 .flatMap(a -> Stream.of(a).parallel())
                 .filter(w -> w.length() >= 4)
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-        String result = wordCount.entrySet().stream().parallel()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                .entrySet().stream().parallel()
                 .filter(e -> e.getValue() >= 10)
                 .sorted(Comparator.comparingLong((ToLongFunction<Map.Entry<String, Long>>) Map.Entry::getValue)
                         .reversed()
