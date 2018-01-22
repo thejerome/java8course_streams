@@ -12,6 +12,7 @@ import static data.Generator.generateEmployeeList;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class StreamsExercise1 {
     private static final List<Employee> EMPLOYEES;
@@ -36,9 +37,11 @@ public class StreamsExercise1 {
                 .filter(withEpamExperience)
                 .collect(Collectors.toList());
 
-        assertFalse(epamEmployees.toString().contains("employer=google"));
-        assertFalse(epamEmployees.toString().contains("employer=yandex"));
-        assertFalse(epamEmployees.toString().contains("employer=abc"));
+        epamEmployees.forEach(e -> assertTrue(
+                        "employee doesn't have experience in Epam",
+                        e.toString().contains("employer=epam")
+                        )
+                );
     }
 
     @Test
