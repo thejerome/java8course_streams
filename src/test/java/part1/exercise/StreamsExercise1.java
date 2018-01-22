@@ -8,7 +8,6 @@ import org.junit.Test;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static data.Generator.generateEmployeeList;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -23,7 +22,7 @@ public class StreamsExercise1 {
 
     @Test
     public void getAllEpamEmployees() {
-        List<Employee> epamEmployees = Generator.generateEmployeeList()
+        List<Employee> epamEmployees = Generator.generateEmployeeListWithEpamExperience()
                 .stream()
                 .filter(
                         e -> e.getJobHistory().stream()
@@ -42,7 +41,7 @@ public class StreamsExercise1 {
 
     @Test
     public void getEmployeesStartedFromEpam() {
-        List<Employee> epamEmployees = Generator.generateEmployeeList()
+        List<Employee> epamEmployees = Generator.generateEmployeeListWithEpamExperience()
                 .stream()
                 .filter(
                         e -> "epam".equals(e.getJobHistory().iterator().next().getEmployer())
@@ -60,7 +59,7 @@ public class StreamsExercise1 {
 
     @Test
     public void sumEpamDurations() {
-        final List<Employee> employees = generateEmployeeList();
+        final List<Employee> employees = Generator.generateEmployeeListWithEpamExperience();
 
         Integer expected = 0;
 
