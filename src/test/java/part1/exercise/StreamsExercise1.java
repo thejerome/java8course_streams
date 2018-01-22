@@ -29,8 +29,8 @@ public class StreamsExercise1 {
     @Test
     public void getAllEpamEmployees() {
         //We proceed from what needs to be done according to the tests given and the syntax of
-        // the method (Employees, that have worked only for EPAM)
-        Predicate<Employee> withEpamExperience = ((e) -> e.getJobHistory().stream().allMatch(
+        // the method (Employees, that have ever worked for EPAM)
+        Predicate<Employee> withEpamExperience = ((e) -> e.getJobHistory().stream().anyMatch(
                 j -> j.getEmployer().equals("epam")));
 
         List<Employee> epamEmployees = EMPLOYEES.stream()
