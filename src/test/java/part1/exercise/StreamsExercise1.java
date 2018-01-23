@@ -4,13 +4,11 @@ import data.Employee;
 import data.JobHistoryEntry;
 import org.junit.Test;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.atomic.LongAccumulator;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static data.Generator.generateEmployeeList;
+import static data.Generator.generateEmployeeListWithEpamExperience;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,8 +31,6 @@ public class StreamsExercise1 {
                 )
                 .collect(Collectors.toList());
 
-        // TODO all persons with experience in epam
-
 
         epamEmployees.forEach(e -> assertTrue(
                         "employee doesn't have experience in Epam",
@@ -45,18 +41,15 @@ public class StreamsExercise1 {
 
     @Test
     public void getEmployeesStartedFromEpam() {
-        List<Employee> epamEmployees = generateEmployeeList().stream()
+        List<Employee> epamEmployees = generateEmployeeListWithEpamExperience().stream()
                 .filter(e -> !e.getJobHistory().isEmpty())
                 .filter(e -> e.getJobHistory().get(0).getEmployer().equals("epam"))
                 .collect(Collectors.toList());
 
         assertNotNull(epamEmployees);
-
-        //FIXME: if there is no person in generated list, with first experience in epam
-        //assertFalse(epamEmployees.isEmpty());
+        assertFalse(epamEmployees.isEmpty());
 
         for (Employee epamEmployee : epamEmployees) {
-            assertFalse(epamEmployee.getJobHistory().isEmpty());
             assertEquals("epam", epamEmployee.getJobHistory().get(0).getEmployer());
         }
     }
