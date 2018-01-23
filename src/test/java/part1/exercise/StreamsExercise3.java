@@ -15,16 +15,6 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 
-class Entry {
-    String word;
-    int count;
-
-    public Entry(String word, int count) {
-        this.word = word;
-        this.count = count;
-    }
-}
-
 public class StreamsExercise3 {
 
     @Test
