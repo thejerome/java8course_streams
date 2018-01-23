@@ -1,16 +1,12 @@
 package data;
 
-import com.sun.org.apache.bcel.internal.generic.ALOAD;
-
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -70,5 +66,33 @@ public class Generator {
         return Stream.generate(Generator::generateEmployee)
                 .limit(length)
                 .collect(toList());
+    }
+
+    /**
+     * That method guarantees that returnable employees list contains
+     * at least one employee with first and only experience at Epam.
+     *
+     * @return list of employee
+     */
+    public static List<Employee> generateEmployeeListWithEpamExperience() {
+        final List<Employee> employees = generateEmployeeList();
+
+        final Employee employeeWithFistEpamExperience = new Employee(
+                new Person(
+                        "Maria", "Cybershooter", 28
+                ),
+                Arrays.asList(
+                        new JobHistoryEntry(
+                                2, "dev", "epam"
+                        ),
+                        new JobHistoryEntry(
+                                3, "QA", "epam"
+                        )
+                )
+        );
+
+        employees.add(employeeWithFistEpamExperience);
+
+        return employees;
     }
 }
