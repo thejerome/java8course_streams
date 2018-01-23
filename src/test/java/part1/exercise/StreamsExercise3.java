@@ -28,9 +28,8 @@ public class StreamsExercise3 {
                     try {
                         return Files.lines(p, Charset.forName("windows-1251"));
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        throw new IllegalArgumentException(e);
                     }
-                    return null;
                 })
                 .parallel()
                 .map(String::toLowerCase)
