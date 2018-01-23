@@ -5,6 +5,7 @@ import data.Generator;
 import data.JobHistoryEntry;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,7 +27,7 @@ public class StreamsExercise1 {
                 .stream()
                 .filter(
                         e -> e.getJobHistory().stream()
-                        .anyMatch(j -> "epam".equals(j.getPosition()))
+                        .anyMatch(j -> "epam".equals(j.getEmployer()))
                 )
                 .collect(Collectors.toList());
         // TODO all persons with experience in epam
