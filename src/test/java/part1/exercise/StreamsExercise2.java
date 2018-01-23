@@ -43,6 +43,15 @@ public class StreamsExercise2 {
             employer = job.getEmployer();
             duration = job.getDuration();
         }
+
+        @Override
+        public String toString() {
+            return "PersonEmployerPair{" +
+                    "person=" + person +
+                    ", employer='" + employer + '\'' +
+                    ", duration=" + duration +
+                    '}';
+        }
     }
 
     @Test
@@ -83,21 +92,24 @@ public class StreamsExercise2 {
 
     @Test
     public void greatestExperiencePerEmployer() {
-        Map<String, Person> employeesIndex = null;
-//                getEmployees().stream()
-//                .filter(e -> !e.getJobHistory().isEmpty())
-//                .flatMap(e -> e.getJobHistory().stream()
-//                        .map(job -> new PersonEmployerPair(e.getPerson(), job))
-//                )
-//                .collect(
-//                        Collectors.groupingBy(
-//                                PersonEmployerPair::getEmployer,
-//                                Collectors.maxBy(PersonEmployerPair::getDuration, Collectors.toList())
-//                        )
-//                )
-//                ;
-        //.map();
-        // TODO map employer vs person with greatest duration in it
+        Map<String, Person> employeesIndex = getEmployees().stream()
+                .filter(e -> !e.getJobHistory().isEmpty())
+                .flatMap(e -> e.getJobHistory().stream()
+                        .map(job -> new PersonEmployerPair(e.getPerson(), job))
+                )
+                .sorted((p1, p2) -> {
+                    int rez = p1.employer.compareTo(p2.employer);
+                    return rez != 0 ? rez : p1.duration - p2.duration;
+                })
+                .collect(
+                        Collectors.groupingBy(
+                                PersonEmployerPair::getEmployer,
+                                Collectors.collectingAndThen(
+                                        Collectors.maxBy(Comparator.comparing(PersonEmployerPair::getDuration)),
+                                        o -> o.get().person
+                                )
+                        )
+                );
         assertEquals(new Person("John", "White", 28), employeesIndex.get("epam"));
     }
 
