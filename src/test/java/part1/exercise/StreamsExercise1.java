@@ -47,8 +47,8 @@ public class StreamsExercise1 {
                 .stream()
                 .findFirst()
                         .filter(j ->j.getEmployer().equals("epam"))
-                        .isPresent()).
-                        collect(Collectors.toList());
+                        .isPresent())
+                .collect(Collectors.toList());
         // TODO all persons with first experience in epam
 
         assertNotNull(epamEmployees);
