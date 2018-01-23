@@ -33,17 +33,16 @@ public class StreamsExercise3 {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }).map(s -> Arrays.stream(s.split("[^а-яА-Яa-zA-Z]+"))
-                .collect(Collectors.toList()))
-                .flatMap(a -> a.stream()
-                        .filter(s -> s.length() >= 4))
+        }).flatMap(s -> Arrays.stream(s.split("[^а-яА-Яa-zA-Z]+")))
+                .filter(s -> s.length() >= 4)
                 .map(String::toLowerCase)
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
                 .entrySet().stream()
                 .filter(e -> e.getValue() >= 10)
-                .sorted(Comparator.comparingLong((ToLongFunction<Map.Entry<String, Long>>) Map.Entry::getValue)
-                        .reversed().thenComparing(Comparator.comparing(Map.Entry::getKey)))
-                .map(s -> s.toString().replace("=", " - "))
+                .sorted((e1, e2) -> e1.getValue() > e2.getValue() ? -1
+                        : e1.getValue().equals(e2.getValue()) ? e1.getKey().compareTo(e2.getKey())
+                        : 1)
+                .map(e -> e.getKey() + " - " + e.getValue())
                 .collect(Collectors.joining("\n"));
 
         assertEquals(new WNPResult().result, result);
