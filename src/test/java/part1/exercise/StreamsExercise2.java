@@ -70,7 +70,16 @@ public class StreamsExercise2 {
     public void indexByFirstEmployer() {
         final List<Employee> employees = getEmployees();
 
-        Map<String, List<Person>> employeesIndex = null;
+        Map<String, List<Person>> employeesIndex = employees
+            .stream()
+            .map(employee -> employee.getJobHistory()
+                                     .stream()
+                                     .findFirst()
+                                     .map(p -> new PersonEmployerPair(employee.getPerson(), p.getEmployer()))
+                                     .get())
+            .collect(Collectors.groupingBy(
+                PersonEmployerPair::getEmployer,
+                mapping(PersonEmployerPair::getPerson, toList())));
         // TODO map employer vs persons with first job history related to it
 
         assertEquals(getExpectedEmployeesIndexByFirstEmployer(), employeesIndex);
