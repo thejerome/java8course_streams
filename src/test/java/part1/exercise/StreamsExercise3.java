@@ -16,6 +16,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
+import part2.exercise.CollectorsExercise2.Value;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,7 +28,7 @@ public class StreamsExercise3 {
             Paths.get("WAP12.txt"),
             Paths.get("WAP34.txt")
         );
-        String result = pathStream
+       String result = pathStream
             .flatMap(path -> {
                 try {
                     return Files.lines(path, Charset.forName("windows-1251"));
@@ -41,16 +42,9 @@ public class StreamsExercise3 {
             .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
             .entrySet()
             .stream()
-            //.sorted(Comparator.comparing(Entry::getValue).thenComparing(Entry::getKey))
-            .sorted((o1, o2) -> {
-                if (o1.getValue() > o2.getValue())
-                    return -1;
-                else if (o1.getValue() < o2.getValue())
-                    return 1;
-                else {
-                    return o1.getKey().compareTo(o2.getKey());
-                }
-            })
+            .sorted(Comparator.<Entry<String, Long>, Long>comparing(Entry::getValue)
+                .reversed()
+                .thenComparing(Entry::getKey))
             .filter(entry -> entry.getValue() >= 10)
             .map(entry -> entry.getKey() + " - " + entry.getValue())
             .collect(Collectors.joining("\n"));
@@ -60,6 +54,7 @@ public class StreamsExercise3 {
         // TODO Entries in final String should be also sorted by amount and then in alphabetical order if needed.
         // TODO Also omit any word with lengths less than 4 and frequency less than 10
 
+        Arrays.asList(1, 6, 8, 9).sort(Comparator.comparing(Integer::byteValue).thenComparing(Integer::doubleValue));
         assertEquals(new WNPResult().result, result);
     }
 
