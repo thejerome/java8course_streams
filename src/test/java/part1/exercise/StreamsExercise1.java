@@ -22,7 +22,13 @@ public class StreamsExercise1 {
 
     @Test
     public void getAllEpamEmployees() {
-        List<Employee> epamEmployees = null;
+        List<Employee> epamEmployees = generateEmployeeList()
+            .stream()
+            .filter(employee -> employee
+                .getJobHistory()
+                .stream()
+                .anyMatch(j ->j.getEmployer().equals("epam")))
+            .collect(Collectors.toList());
         // TODO all persons with experience in epam
 
 
