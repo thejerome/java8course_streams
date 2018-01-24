@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.Test;
@@ -14,7 +15,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.maxBy;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 
@@ -88,12 +92,51 @@ public class StreamsExercise2 {
 
     @Test
     public void greatestExperiencePerEmployer() {
-        Map<String, Person> employeesIndex = null;
+        Map<String, Person> employeesIndex = getEmployees()
+            .stream()
+            .flatMap(employee -> employee
+                .getJobHistory()
+                .stream()
+                .map(jobHistoryEntry -> new PersonEmployerDuration(
+                        employee.getPerson(),
+                        jobHistoryEntry.getEmployer(),
+                        jobHistoryEntry.getDuration()
+                    )
+                )
+            )
+            .collect(groupingBy(
+                PersonEmployerDuration::getEmployer, collectingAndThen(
+                    maxBy(Comparator.comparing(PersonEmployerDuration::getDuration)), personEmployerDuration -> personEmployerDuration.get().getPerson())
+                )
+            );
         // TODO map employer vs person with greatest duration in it
 
         assertEquals(new Person("John", "White", 28), employeesIndex.get("epam"));
     }
 
+  private static class PersonEmployerDuration {
+    private final Person person;
+    private final String employer;
+    private final int duration;
+
+    public PersonEmployerDuration(Person person, String position, int duration) {
+      this.person = person;
+      this.employer = position;
+      this.duration = duration;
+    }
+
+    public Person getPerson() {
+      return person;
+    }
+
+    public int getDuration() {
+      return duration;
+    }
+
+    public String getEmployer() {
+      return employer;
+    }
+  }
 
     private List<Employee> getEmployees() {
         return Arrays.asList(
