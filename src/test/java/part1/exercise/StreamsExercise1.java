@@ -2,6 +2,7 @@ package part1.exercise;
 
 import data.Employee;
 import data.JobHistoryEntry;
+import java.util.stream.Collectors;
 import org.junit.Test;
 
 import java.util.List;
@@ -59,8 +60,11 @@ public class StreamsExercise1 {
             }
         }
 
-         Integer result = null;//TODO sum of all durations in epam job histories
+         Integer result = employees.stream()
+                                   .flatMap(employee -> employee.getJobHistory().stream())
+                                   .filter(j ->j.getEmployer().equals("epam"))
+                                   .mapToInt(JobHistoryEntry::getDuration)
+                                   .sum();//TODO sum of all durations in epam job histories
          assertEquals(expected, result);
     }
-
 }
