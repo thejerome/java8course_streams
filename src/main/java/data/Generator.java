@@ -1,7 +1,9 @@
 package data;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -61,8 +63,9 @@ public class Generator {
     }
 
     public static List<Employee> generateEmployeeList() {
-        // TODO
-        throw new UnsupportedOperationException();
+
+        return Stream.generate(Generator::generateEmployee).limit(new Random().nextInt(30))
+            .collect(toList());
     }
 
     /**
