@@ -3,6 +3,8 @@ package part1.exercise;
 import data.Employee;
 import data.Generator;
 import data.JobHistoryEntry;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 import org.junit.Test;
 
@@ -38,7 +40,6 @@ public class StreamsExercise1 {
     @Test
     public void getEmployeesStartedFromEpam() {
         List<Employee> epamEmployees = Generator.generateEmployeeListWithEpamExperience().stream()
-            .filter(employee -> employee.getJobHistory() != null)
             .filter(employee -> !employee.getJobHistory().isEmpty())
             .filter(employee -> employee.getJobHistory().get(0).getEmployer().equals("epam"))
             .collect(Collectors.toList());
@@ -65,7 +66,12 @@ public class StreamsExercise1 {
             }
         }
 
-         Integer result = null;//TODO sum of all durations in epam job histories
+         Integer result = employees.stream()
+             .flatMap(employee -> employee.getJobHistory().stream())
+             .filter(jobHistoryEntry -> jobHistoryEntry.getEmployer().equals("epam"))
+             .mapToInt(JobHistoryEntry::getDuration)
+             .sum();
+
          assertEquals(expected, result);
     }
 
