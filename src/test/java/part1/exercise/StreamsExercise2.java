@@ -128,11 +128,12 @@ public class StreamsExercise2 {
                                 .max(Comparator.comparingInt(
                                         employee -> employee.getJobHistory()
                                                 .stream()
-                                                .filter(jobHistoryEntry -> jobHistoryEntry
-                                                        .getEmployer().equals(stringListEntry.getKey()))
-                                                .max(Comparator.comparingInt(JobHistoryEntry::getDuration)).get().getDuration())
-                                ).get().getPerson()
-                ))
+                                                .filter(jobHistoryEntry -> jobHistoryEntry.getEmployer().equals(stringListEntry.getKey()))
+                                                .max(Comparator.comparingInt(JobHistoryEntry::getDuration))
+                                                .get()
+                                                .getDuration()))
+                                .get()
+                                .getPerson()))
                 .collect(Collectors.toMap(
                         PersonEmployerPair::getEmployer,
                         PersonEmployerPair::getPerson
