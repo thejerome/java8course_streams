@@ -29,7 +29,7 @@ public class StreamsExercise2 {
                         HashMap<String, List<Person>>::new,
                         (map, e) -> e.getJobHistory().forEach(j -> {
                             map.computeIfAbsent(
-                                    j.getEmployer(), k -> new ArrayList<>())
+                                    j.getEmployer(), key -> new ArrayList<>())
                                     .add(e.getPerson());
                         }),
                         Map::putAll
@@ -46,7 +46,7 @@ public class StreamsExercise2 {
         Map<String, List<Person>> employeesIndex = employees.stream()
                 .collect(
                         HashMap<String, List<Person>>::new,
-                        (map, e) -> map.computeIfAbsent(e.getJobHistory().get(0).getEmployer(), k -> new ArrayList<>())
+                        (map, e) -> map.computeIfAbsent(e.getJobHistory().get(0).getEmployer(), key -> new ArrayList<>())
                                 .add(e.getPerson()),
                         Map::putAll
                 );
@@ -58,7 +58,16 @@ public class StreamsExercise2 {
 
     @Test
     public void greatestExperiencePerEmployer() {
-        Map<String, Person> employeesIndex = null;
+        Map<String, Person> employeesIndex = getEmployees().stream()
+                .collect(
+                        HashMap<String, Person>::new,
+                        (map, e) -> e.getJobHistory().forEach(j -> {
+                            map.computeIfAbsent(
+                                    j.getEmployer(), key -> e.getPerson() ).
+                        }),
+                        Map::putAll
+
+                );
         // TODO map employer vs person with greatest duration in it
 
         assertEquals(new Person("John", "White", 28), employeesIndex.get("epam"));
