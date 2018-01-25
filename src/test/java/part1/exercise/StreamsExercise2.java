@@ -7,10 +7,10 @@ import data.JobHistoryEntry;
 import data.Person;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,8 +27,18 @@ public class StreamsExercise2 {
     public void employersStuffLists() {
         final List<Employee> employees = getEmployees();
 
-        Map<String, List<Person>> employersStuffLists = null;
-        // TODO map employer vs persons with job history related to it
+        Map<String, List<Person>> employersStuffLists = employees.stream()
+                .collect(
+                        HashMap<String, List<Person>>::new,
+                        (map, e) -> e.getJobHistory().forEach(j -> {
+                                if (!map.containsKey(j.getEmployer())) {
+                                    map.put(j.getEmployer(), new ArrayList<>());
+                                }
+                                map.get(j.getEmployer()).add(e.getPerson());
+                        }),
+                        Map::putAll);
+
+        // DONE: map employer vs persons with job history related to it
 
         assertEquals(getExpectedEmployersStuffLists(), employersStuffLists);
     }
