@@ -27,12 +27,10 @@ public class StreamsExercise2 {
         Map<String, List<Person>> employersStuffLists = employees.stream()
                 .collect(
                         HashMap<String, List<Person>>::new,
-                        (map, e) -> e.getJobHistory().stream()
-                            .peek(j -> {
-                                if (!map.containsKey(j.getEmployer())) {
-                                    map.put(j.getEmployer(), new ArrayList<>());
-                                }})
-                            .forEach(j -> map.get(j.getEmployer()).add(e.getPerson())),
+                        (map, e) -> e.getJobHistory().forEach(j -> {
+                            map.computeIfAbsent(j.getEmployer(), k -> new ArrayList<>())
+                                    .add(e.getPerson());
+                        }),
                         Map::putAll
                 );
         // DONE: map employer vs persons with job history related to it
@@ -44,7 +42,15 @@ public class StreamsExercise2 {
     public void indexByFirstEmployer() {
         final List<Employee> employees = getEmployees();
 
-        Map<String, List<Person>> employeesIndex = null;
+        Map<String, List<Person>> employeesIndex = employees.stream()
+                .collect(
+                        HashMap<String, List<Person>>::new,
+                        (map, e) -> {
+                            map.putIfAbsent(e.getJobHistory().get(0).getEmployer(), new ArrayList<>());
+                            map.get(e.getJobHistory().get(0).getEmployer()).add(e.getPerson());
+                        },
+                        Map::putAll
+                );
         // TODO map employer vs persons with first job history related to it
 
         assertEquals(getExpectedEmployeesIndexByFirstEmployer(), employeesIndex);
