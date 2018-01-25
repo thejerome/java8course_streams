@@ -1,7 +1,9 @@
 package part1.exercise;
 
 import data.Employee;
+import data.Generator;
 import data.JobHistoryEntry;
+import java.util.stream.Collectors;
 import org.junit.Test;
 
 import java.util.List;
@@ -24,6 +26,12 @@ public class StreamsExercise1 {
         List<Employee> epamEmployees = null;
         // TODO all persons with experience in epam
 
+        epamEmployees = Generator.generateEmployeeList()
+            .stream()
+            .filter(p -> p.getJobHistory()
+                .stream()
+                .anyMatch(h -> "epam".equals(h.getEmployer())))
+            .collect(Collectors.toList());
 
         epamEmployees.forEach(e -> assertTrue(
                         "employee doesn't have experience in Epam",
@@ -36,6 +44,13 @@ public class StreamsExercise1 {
     public void getEmployeesStartedFromEpam() {
         List<Employee> epamEmployees = null;
         // TODO all persons with first experience in epam
+
+        epamEmployees = Generator.generateEmployeeList()
+            .stream()
+            .filter(p -> p.getJobHistory().stream()
+                .findFirst()
+                .map(jh -> "epam".equals(jh.getEmployer())).orElse(false))
+            .collect(Collectors.toList());
 
         assertNotNull(epamEmployees);
         assertFalse(epamEmployees.isEmpty());
@@ -60,6 +75,13 @@ public class StreamsExercise1 {
         }
 
          Integer result = null;//TODO sum of all durations in epam job histories
+
+        result = employees.stream()
+            .mapToInt(p -> p.getJobHistory().stream()
+                .filter(h -> "epam".equals(h.getEmployer()))
+                .mapToInt(h -> h.getDuration())
+                .sum())
+            .sum();
          assertEquals(expected, result);
     }
 
