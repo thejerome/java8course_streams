@@ -28,7 +28,8 @@ public class StreamsExercise2 {
                 .collect(
                         HashMap<String, List<Person>>::new,
                         (map, e) -> e.getJobHistory().forEach(j -> {
-                            map.computeIfAbsent(j.getEmployer(), k -> new ArrayList<>())
+                            map.computeIfAbsent(
+                                    j.getEmployer(), k -> new ArrayList<>())
                                     .add(e.getPerson());
                         }),
                         Map::putAll
@@ -45,13 +46,11 @@ public class StreamsExercise2 {
         Map<String, List<Person>> employeesIndex = employees.stream()
                 .collect(
                         HashMap<String, List<Person>>::new,
-                        (map, e) -> {
-                            map.putIfAbsent(e.getJobHistory().get(0).getEmployer(), new ArrayList<>());
-                            map.get(e.getJobHistory().get(0).getEmployer()).add(e.getPerson());
-                        },
+                        (map, e) -> map.computeIfAbsent(e.getJobHistory().get(0).getEmployer(), k -> new ArrayList<>())
+                                .add(e.getPerson()),
                         Map::putAll
                 );
-        // TODO map employer vs persons with first job history related to it
+        // DONE: map employer vs persons with first job history related to it
 
         assertEquals(getExpectedEmployeesIndexByFirstEmployer(), employeesIndex);
 
