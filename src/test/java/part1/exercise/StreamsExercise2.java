@@ -8,8 +8,10 @@ import data.Person;
 import org.junit.Test;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.*;
 
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.groupingBy;
 import static org.junit.Assert.assertEquals;
 
 public class StreamsExercise2 {
@@ -29,6 +31,9 @@ public class StreamsExercise2 {
         PersonEmployerPair(Person person, String employer) {
             this.person = person;
             this.employer = employer;
+        }
+        String getEmployer() {
+            return employer;
         }
     }
 
@@ -82,17 +87,12 @@ public class StreamsExercise2 {
                         Map::putAll
                 ).entrySet().stream()
                 .collect(
-                        HashMap<String, Person>::new,
-                        (index, entry) -> {
-                            index.putIfAbsent(entry.getKey().employer, entry.getKey().person);
-                            if (entry.getValue() > index.get(entry).) {
-
-                            }
-                        },
-                        Map::putAll
+                        groupingBy(
+                                entry -> entry.getKey().getEmployer(),
+                                collectingAndThen(
+                                        maxBy(comparing(Map.Entry::getValue)), e -> e.get().getKey().person))
                 );
-        // TODO map employer vs person with greatest duration in it
-        // Person & Employer => Integer
+        // DONE: map employer vs person with greatest duration in it
 
         assertEquals(new Person("John", "White", 28), employeesIndex.get("epam"));
     }
