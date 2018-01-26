@@ -8,6 +8,7 @@ import data.Person;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -18,7 +19,18 @@ public class StreamsExercise2 {
     // https://youtu.be/O8oN4KSZEXE Сергей Куксенко — Stream API, часть 1
     // https://youtu.be/i0Jr2l3jrDA Сергей Куксенко — Stream API, часть 2
 
-    // TODO class PersonEmployerPair
+    // DONE: class PersonEmployerPair
+    public static class PersonEmployerPair {
+        public static PersonEmployerPair getFor(Person p, String e) {
+            return new PersonEmployerPair(p, e);
+        }
+        Person person;
+        String employer;
+        PersonEmployerPair(Person person, String employer) {
+            this.person = person;
+            this.employer = employer;
+        }
+    }
 
     @Test
     public void employersStuffLists() {
@@ -28,8 +40,7 @@ public class StreamsExercise2 {
                 .collect(
                         HashMap<String, List<Person>>::new,
                         (map, e) -> e.getJobHistory().forEach(j -> {
-                            map.computeIfAbsent(
-                                    j.getEmployer(), key -> new ArrayList<>())
+                            map.computeIfAbsent(j.getEmployer(), key -> new ArrayList<>())
                                     .add(e.getPerson());
                         }),
                         Map::putAll
@@ -60,15 +71,28 @@ public class StreamsExercise2 {
     public void greatestExperiencePerEmployer() {
         Map<String, Person> employeesIndex = getEmployees().stream()
                 .collect(
-                        HashMap<String, Person>::new,
+                        HashMap<PersonEmployerPair, Integer>::new,
                         (map, e) -> e.getJobHistory().forEach(j -> {
-                            map.computeIfAbsent(
-                                    j.getEmployer(), key -> e.getPerson() ).
+                            final PersonEmployerPair pair = PersonEmployerPair.getFor(e.getPerson(), j.getEmployer());
+                            map.putIfAbsent(pair, j.getDuration());
+                            if (map.get(pair) < j.getDuration()) {
+                                map.put(pair, j.getDuration());
+                            }
                         }),
                         Map::putAll
+                ).entrySet().stream()
+                .collect(
+                        HashMap<String, Person>::new,
+                        (index, entry) -> {
+                            index.putIfAbsent(entry.getKey().employer, entry.getKey().person);
+                            if (entry.getValue() > index.get(entry).) {
 
+                            }
+                        },
+                        Map::putAll
                 );
         // TODO map employer vs person with greatest duration in it
+        // Person & Employer => Integer
 
         assertEquals(new Person("John", "White", 28), employeesIndex.get("epam"));
     }
