@@ -120,7 +120,7 @@ public class CollectorsExercise1 {
                             .collect(Collectors.toMap(
                                 Map.Entry::getKey,
                                 Map.Entry::getValue,
-                                Integer::max
+                                (k1, k2) -> k1 + k2
                             ));
                     }
 
