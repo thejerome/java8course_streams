@@ -8,6 +8,8 @@ import data.Person;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.function.Consumer;
+
 import static java.util.stream.Collectors.*;
 
 import static java.util.Comparator.comparing;
@@ -75,14 +77,15 @@ public class StreamsExercise2 {
     @Test
     public void greatestExperiencePerEmployer() {
         Map<String, Person> employeesIndex = getEmployees().stream()
-                .collect(
-                        HashMap<PersonEmployerPair, Integer>::new,
+                .collect(HashMap<PersonEmployerPair, Integer>::new,
                         (map, e) -> e.getJobHistory().forEach(j -> {
-                            final PersonEmployerPair pair = PersonEmployerPair.getFor(e.getPerson(), j.getEmployer());
-                            map.putIfAbsent(pair, j.getDuration());
-                            if (map.get(pair) < j.getDuration()) {
-                                map.put(pair, j.getDuration());
-                            }
+                            final Consumer<PersonEmployerPair> longestDurationCollector =
+                                    (pair -> {
+                                        if (map.computeIfAbsent(pair, key -> j.getDuration()) < j.getDuration()) {
+                                            map.put(pair, j.getDuration());
+                                        }
+                                    });
+                            longestDurationCollector.accept(PersonEmployerPair.getFor(e.getPerson(), j.getEmployer()));
                         }),
                         Map::putAll
                 ).entrySet().stream()
