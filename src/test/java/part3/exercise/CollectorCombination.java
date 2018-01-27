@@ -9,9 +9,8 @@ import part2.exercise.CollectorsExercise2.Value;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collector;
 
-import static java.util.stream.Collectors.*;
+import java.util.stream.Collector;
 
 public class CollectorCombination {
 
