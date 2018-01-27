@@ -1,6 +1,5 @@
 package part3.exercise;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import part2.exercise.CollectorsExercise2;
 import part2.exercise.CollectorsExercise2.Key;
@@ -39,7 +38,6 @@ public class CollectorCombination {
         throw new UnsupportedOperationException();
     }
 
-    @Ignore
     @Test
     public void collectKeyValueMap() {
         // TODO see CollectorsExercise1::collectKeyValueMap
