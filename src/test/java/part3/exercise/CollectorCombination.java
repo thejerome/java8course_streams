@@ -11,6 +11,10 @@ import java.util.function.Function;
 
 import java.util.stream.Collector;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toMap;
+
 public class CollectorCombination {
 
     private static class Pair<A, B> {
