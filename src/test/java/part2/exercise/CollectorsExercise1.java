@@ -17,7 +17,18 @@ public class CollectorsExercise1 {
     @Test
     public void testPersonToHisLongestJobDuration() {
 
-        Map<Person, Integer> collected = null;//getEmployees()
+      Map<Person, Integer> collected =
+          getEmployees().stream()
+                        .collect(
+                            Collectors.toMap(
+                                Employee::getPerson,
+                                e -> e.getJobHistory()
+                                      .stream()
+                                      .map(JobHistoryEntry::getDuration)
+                                      .reduce(Math::max)
+                                      .orElse(0)
+                            )
+                        );
 
         Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
                 .put(new Person("John", "Galt", 20), 3)
@@ -39,10 +50,21 @@ public class CollectorsExercise1 {
     @Test
     public void testPersonToHisTotalJobDuration() {
 
-        Map<Person, Integer> collected = null;
+      Map<Person, Integer> collected =
+          getEmployees().stream()
+                        .collect(
+                            Collectors.toMap(
+                                Employee::getPerson,
+                                e -> e.getJobHistory()
+                                      .stream()
+                                      .mapToInt(JobHistoryEntry::getDuration)
+                                      .sum()
+                            )
+                        );
 
 
-        Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
+
+      Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
                 .put(new Person("John", "Galt", 20), 5)
                 .put(new Person("John", "Doe", 21), 8)
                 .put(new Person("John", "White", 22), 6)
