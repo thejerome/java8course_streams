@@ -1,7 +1,6 @@
 package part2.exercise;
 
 import com.google.common.collect.ImmutableMap;
-import com.sun.xml.internal.bind.v2.runtime.reflect.Lister;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
@@ -15,7 +14,6 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.*;
 
 public class CollectorsExercise1 {
 
