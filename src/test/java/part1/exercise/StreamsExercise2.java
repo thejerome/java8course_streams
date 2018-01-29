@@ -8,9 +8,12 @@ import data.Person;
 import org.junit.Test;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
+
+import static java.util.stream.Collectors.*;
 
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.groupingBy;
 import static org.junit.Assert.assertEquals;
 
 public class StreamsExercise2 {
@@ -31,7 +34,7 @@ public class StreamsExercise2 {
             this.person = person;
             this.employer = employer;
         }
-        public String getEmployer() {
+        String getEmployer() {
             return employer;
         }
     }
@@ -73,27 +76,26 @@ public class StreamsExercise2 {
 
     @Test
     public void greatestExperiencePerEmployer() {
-        Map<String, Person> employeesIndex = null;
-
-        Map<String, List<Map.Entry<PersonEmployerPair,Integer>>> theMap = getEmployees().stream()
-                .collect(
-                        HashMap<PersonEmployerPair, Integer>::new,
+        Map<String, Person> employeesIndex = getEmployees().stream()
+                .collect(HashMap<PersonEmployerPair, Integer>::new,
                         (map, e) -> e.getJobHistory().forEach(j -> {
-                            final PersonEmployerPair pair = PersonEmployerPair.getFor(e.getPerson(), j.getEmployer());
-                            map.putIfAbsent(pair, j.getDuration());
-                            if (map.get(pair) < j.getDuration()) {
-                                map.put(pair, j.getDuration());
-                            }
+                            final Consumer<PersonEmployerPair> longestDurationCollector =
+                                    (pair -> {
+                                        if (map.computeIfAbsent(pair, key -> j.getDuration()) < j.getDuration()) {
+                                            map.put(pair, j.getDuration());
+                                        }
+                                    });
+                            longestDurationCollector.accept(PersonEmployerPair.getFor(e.getPerson(), j.getEmployer()));
                         }),
                         Map::putAll
                 ).entrySet().stream()
                 .collect(
-                        Collectors.groupingBy(
+                        groupingBy(
                                 entry -> entry.getKey().getEmployer(),
-                                Collectors.maxBy(comparing(PersonEmployerPair::)) )
+                                collectingAndThen(
+                                        maxBy(comparing(Map.Entry::getValue)), e -> e.get().getKey().person))
                 );
-        // TODO map employer vs person with greatest duration in it
-        // Person & Employer => Integer
+        // DONE: map employer vs person with greatest duration in it
 
         assertEquals(new Person("John", "White", 28), employeesIndex.get("epam"));
     }
