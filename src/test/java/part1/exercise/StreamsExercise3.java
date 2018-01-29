@@ -27,7 +27,7 @@ public class StreamsExercise3 {
                         throw new RuntimeException(e);
                     }})
                 .map(line -> line.split("[^а-яА-Яa-zA-Z]"))
-                .flatMap(a -> Arrays.stream(a));
+                .flatMap(Arrays::stream);
 
 
         // TODO map lowercased words to its amount in text and concatenate its entries.
