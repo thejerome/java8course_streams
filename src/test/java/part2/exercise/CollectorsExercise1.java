@@ -4,6 +4,9 @@ import com.google.common.collect.ImmutableMap;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
+import javafx.util.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,9 +27,8 @@ public class CollectorsExercise1 {
                                 Employee::getPerson,
                                 e -> e.getJobHistory()
                                       .stream()
-                                      .map(JobHistoryEntry::getDuration)
-                                      .reduce(Math::max)
-                                      .orElse(0)
+                                      .mapToInt(JobHistoryEntry::getDuration)
+                                      .max().getAsInt()
                             )
                         );
 
@@ -85,8 +87,27 @@ public class CollectorsExercise1 {
     @Test
     public void testTotalJobDurationPerNameAndSurname(){
 
-        //Implement custom Collector
-        Map<String, Integer> collected = null;
+      //Implement custom Collector
+      Map<String, Integer> collected = getEmployees().stream()
+                                                     .map(e ->
+                                                         new Pair<>(e.getPerson(),
+                                                             e.getJobHistory()
+                                                              .stream()
+                                                              .mapToInt(
+                                                                  JobHistoryEntry::getDuration)
+                                                              .sum()))
+                                                     .flatMap(pair -> Stream.of(
+                                                         new Pair<>(pair.getKey()
+                                                                        .getFirstName(),
+                                                             pair.getValue()),
+                                                         new Pair<>(pair.getKey()
+                                                                        .getLastName(),
+                                                             pair.getValue())
+
+                                                     ))
+                                                     .collect(Collectors.toMap(Pair::getKey,
+                                                         Pair::getValue,
+                                                         (a, b) -> a + b));
 
         Map<String, Integer> expected = ImmutableMap.<String, Integer>builder()
                 .put("John", 5 + 8 + 6 + 5 + 8 + 6 + 4 + 8 + 6 + 4 + 11 + 6 - 8 - 6)
