@@ -46,7 +46,13 @@ public class CollectorsExercise1 {
     @Test
     public void testPersonToHisTotalJobDuration() {
 
-        Map<Person, Integer> collected = null;
+        Map<Person, Integer> collected = getEmployees()
+            .stream()
+            .collect(Collectors.toMap(Employee::getPerson,
+                employee -> employee.getJobHistory()
+                                    .stream()
+                                    .mapToInt(JobHistoryEntry::getDuration)
+                                    .sum()));
 
 
         Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
