@@ -5,6 +5,8 @@ import com.google.common.collect.ImmutableMap;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -23,11 +25,51 @@ public class StreamsExercise2 {
 
     // TODO class PersonEmployerPair
 
+    static class PersonEmployerPair {
+        private final Person person;
+        private final String employer;
+        private final Integer duration;
+
+        public PersonEmployerPair(Person person, String employer, Integer duration) {
+            this.person = person;
+            this.employer = employer;
+            this.duration = duration;
+
+        }
+
+        public Person getPerson() {
+            return person;
+        }
+
+        public String getEmployer() {
+            return employer;
+        }
+
+        @Override
+        public String toString() {
+            return "PersonEmployerPair{" +
+                "person=" + person +
+                ", employer='" + employer + '\'' +
+                '}';
+        }
+
+        public Integer getDuration() {
+            return duration;
+        }
+    }
     @Test
     public void employersStuffLists() {
         final List<Employee> employees = getEmployees();
 
-        Map<String, List<Person>> employersStuffLists = null;
+        Map<String, List<Person>> employersStuffLists = employees
+            .stream()
+            .flatMap(e -> e.getJobHistory()
+                .stream()
+                .map(jobHistoryEntry -> new PersonEmployerPair(e.getPerson(),
+                    jobHistoryEntry.getEmployer(), jobHistoryEntry.getDuration())))
+            .collect(Collectors.groupingBy(
+                PersonEmployerPair::getEmployer,
+                Collectors.mapping(PersonEmployerPair::getPerson, Collectors.toList())));
         // TODO map employer vs persons with job history related to it
 
         assertEquals(getExpectedEmployersStuffLists(), employersStuffLists);
@@ -37,7 +79,17 @@ public class StreamsExercise2 {
     public void indexByFirstEmployer() {
         final List<Employee> employees = getEmployees();
 
-        Map<String, List<Person>> employeesIndex = null;
+        Map<String, List<Person>> employeesIndex = employees
+            .stream()
+            .map(e -> new PersonEmployerPair(
+                e.getPerson(),
+                e.getJobHistory().get(0).getEmployer(),
+                e.getJobHistory().get(0).getDuration()))
+            .collect(Collectors.groupingBy(
+                PersonEmployerPair::getEmployer,
+                Collectors.mapping(PersonEmployerPair::getPerson, Collectors.toList())
+            ));
+
         // TODO map employer vs persons with first job history related to it
 
         assertEquals(getExpectedEmployeesIndexByFirstEmployer(), employeesIndex);
@@ -46,8 +98,24 @@ public class StreamsExercise2 {
 
     @Test
     public void greatestExperiencePerEmployer() {
-        Map<String, Person> employeesIndex = null;
+        final List<Employee> employees = getEmployees();
+
+        Map<String, Person> employeesIndex = employees
+            .stream()
+            .flatMap(e -> e.getJobHistory()
+                .stream()
+                .map(jobHistoryEntry -> new PersonEmployerPair(
+                    e.getPerson(),
+                    jobHistoryEntry.getEmployer(),
+                    jobHistoryEntry.getDuration())))
+            .collect(Collectors.groupingBy(
+                PersonEmployerPair::getEmployer,
+                Collectors.collectingAndThen(
+                    Collectors.maxBy(Comparator.comparing(PersonEmployerPair::getDuration)),
+                    personEmployerPair -> personEmployerPair.get().getPerson())
+            ));
         // TODO map employer vs person with greatest duration in it
+
 
         assertEquals(new Person("John", "White", 28), employeesIndex.get("epam"));
     }
