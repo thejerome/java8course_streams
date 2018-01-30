@@ -225,7 +225,6 @@ public class StreamsExercise {
     public void getCoolestPersonByPosition1() {
         // Get person with max duration on given position
         final List<Employee> employees = getEmployees();
-
         final Map<String, PersonPositionDuration> coolestPersonByPosition = employees
                 .stream()
                 .flatMap(employee -> getPersonPositionIndex(employee)
