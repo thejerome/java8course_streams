@@ -27,7 +27,7 @@ public class LambdaExercise {
 
     @Test
     public void function() {
-        final Function<Person, String> getPersonName1 = Person::getFirstName; // TODO get the name of person using expression lambda
+        final Function<Person, String> getPersonName1 = Person::getFirstName;
 
         final Function<Person, String> getPersonName2 = new Function<Person, String>() {
             @Override
