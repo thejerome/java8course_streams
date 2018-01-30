@@ -35,23 +35,21 @@ public class StreamsExercise3 {
                 .map(String::toLowerCase)
                 .collect(
                         HashMap<String, Integer>::new,
-                        (map, w) -> map.put(w, map.computeIfAbsent(w, key -> (0)) + 1),
+                        (map, w) -> map.put(w, map.computeIfAbsent(w, key -> 0) + 1),
                         Map::putAll
                 ).entrySet().stream()
                 .filter( e -> e.getValue() >= 10)
                 .sorted( (e1, e2) -> {
-                    if(Integer.compare(e1.getValue(), e2.getValue()) == 0)
-                        return e1.getKey().compareTo(e2.getKey());
-                    else
-                        return Long.compare(e2.getValue(), e1.getValue());
+                    Integer res = Integer.compare(e2.getValue(), e1.getValue());
+                    return 0 == res ? e1.getKey().compareTo(e2.getKey()) : res;
                 })
                 .map(entry -> entry.getKey() + " - " + entry.getValue())
                 .collect(Collectors.joining("\n"));
 
-        // TODO map lowercased words to its amount in text and concatenate its entries.
-        // TODO If word "котик" occurred in text 23 times then its entry would be "котик - 23\n".
-        // TODO Entries in final String should be also sorted by amount and then in alphabetical order if needed.
-        // TODO Also omit any word with lengths less than 4 and frequency less than 10
+        // DONE: map lowercased words to its amount in text and concatenate its entries.
+        // DONE: If word "котик" occurred in text 23 times then its entry would be "котик - 23\n".
+        // DONE: Entries in final String should be also sorted by amount and then in alphabetical order if needed.
+        // DONE: Also omit any word with lengths less than 4 and frequency less than 10
 
         assertEquals(new WNPResult().result, result);
     }
