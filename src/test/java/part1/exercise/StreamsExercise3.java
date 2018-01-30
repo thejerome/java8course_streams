@@ -1,29 +1,49 @@
 package part1.exercise;
 
-import data.WNPResult;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
-
+import static java.nio.file.Files.readAllLines;
 import static org.junit.Assert.assertEquals;
+
+import data.WNPResult;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.junit.Test;
 
 public class StreamsExercise3 {
 
     @Test
     public void warAndPeace() throws IOException {
-        Stream.of(
-                Paths.get("WAP12.txt"),
-                Paths.get("WAP34.txt")
-                );
+        Stream<Path> stream = Stream.of(
+            Paths.get("WAP12.txt"),
+            Paths.get("WAP34.txt")
+        );
 
-
-        String result = null;
-        // TODO map lowercased words to its amount in text and concatenate its entries.
-        // TODO If word "котик" occurred in text 23 times then its entry would be "котик - 23\n".
-        // TODO Entries in final String should be also sorted by amount and then in alphabetical order if needed.
-        // TODO Also omit any word with lengths less than 4 and frequency less than 10
+        String result = stream
+            .flatMap(path -> {
+                try {
+                    return readAllLines(path, Charset.forName("windows-1251")).stream();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return Stream.empty();
+                }
+            })
+            .flatMap(line -> Arrays.stream(line.split("[^а-яА-Яa-zA-Z]")))
+            .filter(word -> word.length() >= 4)
+            .map(String::toLowerCase)
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() >= 10)
+            .sorted((entry1, entry2) ->
+                entry1.getValue().equals(entry2.getValue()) ?
+                    entry1.getKey().compareTo(entry2.getKey()) : Long.compare(entry2.getValue(), entry1.getValue()))
+            .map(entry -> entry.getKey() + " - " + entry.getValue())
+            .collect(Collectors.joining("\n"));
 
         assertEquals(new WNPResult().result, result);
     }
