@@ -1,82 +1,80 @@
 package part2.exercise;
 
+import com.google.common.collect.ImmutableMap;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 public class CollectorsExercise1 {
 
     @Test
-    public void getTheCoolestOne() {
-        final Map<String, Person> coolestByPosition = getCoolestByPosition(getEmployees());
+    public void testPersonToHisLongestJobDuration() {
 
-        coolestByPosition.forEach((position, person) -> System.out.println(position + " -> " + person));
-    }
+        Map<Person, Integer> collected = null;//getEmployees()
 
-    private static class PersonPositionDuration {
-        private final Person person;
-        private final String position;
-        private final int duration;
-
-        public PersonPositionDuration(Person person, String position, int duration) {
-            this.person = person;
-            this.position = position;
-            this.duration = duration;
-        }
-
-        public Person getPerson() {
-            return person;
-        }
-
-        public String getPosition() {
-            return position;
-        }
-
-        public int getDuration() {
-            return duration;
-        }
-    }
-
-    // With the longest duration on single job
-    private Map<String, Person> getCoolestByPosition(List<Employee> employees) {
-        // First option
-        // Collectors.maxBy
-        // Collectors.collectingAndThen
-        // Collectors.groupingBy
-
-        // Second option
-        // Collectors.toMap
-        // iterate twice: stream...collect(...).stream()...
-        // TODO
-        throw new UnsupportedOperationException();
+        Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
+                .put(new Person("John", "Galt", 20), 3)
+                .put(new Person("John", "Doe", 21), 4)
+                .put(new Person("John", "White", 22), 6)
+                .put(new Person("John", "Galt", 23), 3)
+                .put(new Person("John", "Doe", 24), 4)
+                .put(new Person("John", "White", 25), 6)
+                .put(new Person("John", "Galt", 26), 3)
+                .put(new Person("Bob", "Doe", 27), 4)
+                .put(new Person("John", "White", 28), 6)
+                .put(new Person("John", "Galt", 29), 3)
+                .put(new Person("John", "Doe", 30), 5)
+                .put(new Person("Bob", "White", 31), 6)
+                .build();
+        Assert.assertEquals(expected, collected);
     }
 
     @Test
-    public void getTheCoolestOne2() {
-        final Map<String, Person> coolestByPosition = getCoolestByPosition2(getEmployees());
+    public void testPersonToHisTotalJobDuration() {
 
-        coolestByPosition.forEach((position, person) -> System.out.println(position + " -> " + person));
+        Map<Person, Integer> collected = null;
+
+
+        Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
+                .put(new Person("John", "Galt", 20), 5)
+                .put(new Person("John", "Doe", 21), 8)
+                .put(new Person("John", "White", 22), 6)
+                .put(new Person("John", "Galt", 23), 5)
+                .put(new Person("John", "Doe", 24), 8)
+                .put(new Person("John", "White", 25), 6)
+                .put(new Person("John", "Galt", 26), 4)
+                .put(new Person("Bob", "Doe", 27), 8)
+                .put(new Person("John", "White", 28), 6)
+                .put(new Person("John", "Galt", 29), 4)
+                .put(new Person("John", "Doe", 30), 11)
+                .put(new Person("Bob", "White", 31), 6)
+                .build();
+
+        Assert.assertEquals(expected, collected);
     }
 
-    // With the longest sum duration on this position
-    // { John Doe, [{dev, google, 4}, {dev, epam, 4}] } предпочтительнее, чем { A B, [{dev, google, 6}, {QA, epam, 100}]}
-    private Map<String, Person> getCoolestByPosition2(List<Employee> employees) {
-        // TODO
-        throw new UnsupportedOperationException();
+    @Test
+    public void testTotalJobDurationPerNameAndSurname(){
+
+        //Implement custom Collector
+        Map<String, Integer> collected = null;
+
+        Map<String, Integer> expected = ImmutableMap.<String, Integer>builder()
+                .put("John", 5 + 8 + 6 + 5 + 8 + 6 + 4 + 8 + 6 + 4 + 11 + 6 - 8 - 6)
+                .put("Bob", 8 + 6)
+                .put("Galt", 5 + 5 + 4 + 4)
+                .put("Doe", 8 + 8 + 8 + 11)
+                .put("White", 6 + 6 + 6 + 6)
+                .build();
+
+        Assert.assertEquals(expected, collected);
     }
 
     private List<Employee> getEmployees() {
