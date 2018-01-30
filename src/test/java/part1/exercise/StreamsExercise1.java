@@ -1,12 +1,16 @@
 package part1.exercise;
 
 import data.Employee;
+import data.Generator;
 import data.JobHistoryEntry;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import static data.Generator.generateEmployeeList;
+import static java.util.stream.Collectors.toList;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -21,9 +25,10 @@ public class StreamsExercise1 {
 
     @Test
     public void getAllEpamEmployees() {
-        List<Employee> epamEmployees = null;
-        // TODO all persons with experience in epam
-
+        List<Employee> epamEmployees = generateEmployeeList()
+                .stream()
+                .filter(e -> e.getJobHistory().stream().allMatch(j -> "epam".equals(j.getEmployer())))
+                .collect(toList());
 
         epamEmployees.forEach(e -> assertTrue(
                         "employee doesn't have experience in Epam",
@@ -34,8 +39,10 @@ public class StreamsExercise1 {
 
     @Test
     public void getEmployeesStartedFromEpam() {
-        List<Employee> epamEmployees = null;
-        // TODO all persons with first experience in epam
+        List<Employee> epamEmployees = generateEmployeeList()
+                .stream()
+                .filter(e -> e.getJobHistory().stream().limit(1).allMatch(j -> "epam".equals(j.getEmployer())))
+                .collect(toList());
 
         assertNotNull(epamEmployees);
         assertFalse(epamEmployees.isEmpty());
@@ -48,6 +55,12 @@ public class StreamsExercise1 {
     @Test
     public void sumEpamDurations() {
         final List<Employee> employees = generateEmployeeList();
+        Optional<Integer> reduce = employees
+                .stream()
+                .flatMap(e -> e.getJobHistory().stream())
+                .filter(j -> "epam".equals(j.getEmployer()))
+                .map(JobHistoryEntry::getDuration)
+                .reduce((d1, d2) -> d1 + d2);
 
         Integer expected = 0;
 
@@ -59,7 +72,7 @@ public class StreamsExercise1 {
             }
         }
 
-         Integer result = null;//TODO sum of all durations in epam job histories
+         Integer result = reduce.isPresent() ? reduce.get() : 0;
          assertEquals(expected, result);
     }
 
