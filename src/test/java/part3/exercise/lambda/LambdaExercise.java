@@ -7,7 +7,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static com.sun.org.apache.xalan.internal.xsltc.runtime.BasisLibrary.compare;
 import static com.sun.org.apache.xalan.internal.xsltc.runtime.BasisLibrary.getStringLength;
 import static org.junit.Assert.assertEquals;
 
