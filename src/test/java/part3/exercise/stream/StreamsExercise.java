@@ -3,6 +3,7 @@ package part3.exercise.stream;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.junit.Test;
 
@@ -11,15 +12,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.stream.Collectors.*;
 import static org.junit.Assert.assertEquals;
 
 public class StreamsExercise {
+
+    private static Stream<? extends PersonEmployer> convertToPersonEmployer(Employee e) {
+        return e.getJobHistory().stream()
+            .map(JobHistoryEntry::getEmployer)
+            .collect(toList())
+            .stream()
+            .map(s -> new PersonEmployer(e.getPerson(), s));
+    }
 
     @Test
     public void getAllJobHistoryEntries() {
         final List<Employee> employees = getEmployees();
 
-        final List<JobHistoryEntry> jobHistoryEntries = null; // TODO
+        final List<JobHistoryEntry> jobHistoryEntries = employees.stream().flatMap(employee ->
+            employee.getJobHistory().stream()).collect(toList()); // TODO
 
         assertEquals(22, jobHistoryEntries.size());
     }
@@ -29,7 +40,8 @@ public class StreamsExercise {
         // sum all durations for all persons
         final List<Employee> employees = getEmployees();
 
-        final int sumDurations = 0; // TODO
+        final int sumDurations = employees.stream().flatMap(employee ->
+        employee.getJobHistory().stream()).mapToInt(JobHistoryEntry::getDuration).sum(); // TODO
 
         assertEquals(72, sumDurations);
     }
@@ -64,7 +76,11 @@ public class StreamsExercise {
     public void indexPersonsByEmployer1() {
         final List<Employee> employees = getEmployees();
 
-        final Map<String, List<PersonEmployer>> index = null; // TODO
+        final Map<String, List<PersonEmployer>> index = employees.stream()
+            .flatMap(StreamsExercise::convertToPersonEmployer)
+            .collect(groupingBy(
+                PersonEmployer::getEmployer,
+                mapping(o -> o, toList())));
 
         assertEquals(11, index.get("epam").size());
     }
@@ -73,7 +89,12 @@ public class StreamsExercise {
     public void indexPersonsByEmployer2() {
         final List<Employee> employees = getEmployees();
 
-        final Map<String, List<Person>> index = null; // TODO
+        final Map<String, List<Person>> index = employees.stream()
+            .flatMap(StreamsExercise::convertToPersonEmployer)
+            .collect(groupingBy(
+                PersonEmployer::getEmployer,
+                mapping(PersonEmployer::getPerson, toList())
+            )); // TODO
 
         assertEquals(11, index.get("epam").size());
     }
