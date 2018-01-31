@@ -7,7 +7,11 @@ import part2.exercise.CollectorsExercise2.Value;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collector;
 
 import static java.util.stream.Collectors.*;
@@ -35,7 +39,33 @@ public class CollectorCombination {
     private static <T, M1, M2, R1, R2> Collector<T, Pair<M1, M2>, Pair<R1, R2>> paired(Collector<T, M1, R1> c1,
                                                                                        Collector<T, M2, R2> c2) {
         // TODO
-        throw new UnsupportedOperationException();
+        //throw new UnsupportedOperationException();
+        return new Collector<T, Pair<M1, M2>, Pair<R1, R2>>() {
+            @Override
+            public Supplier<Pair<M1, M2>> supplier() {
+                return () -> new Pair<>(null, null);
+            }
+
+            @Override
+            public BiConsumer<Pair<M1, M2>, T> accumulator() {
+                return null;
+            }
+
+            @Override
+            public BinaryOperator<Pair<M1, M2>> combiner() {
+                return null;
+            }
+
+            @Override
+            public Function<Pair<M1, M2>, Pair<R1, R2>> finisher() {
+                return null;
+            }
+
+            @Override
+            public Set<Characteristics> characteristics() {
+                return null;
+            }
+        };
     }
 
     @Test
@@ -58,7 +88,7 @@ public class CollectorCombination {
 
 
         // TODO tests
-        throw new UnsupportedOperationException();
+        //throw new UnsupportedOperationException();
     }
 
 }
