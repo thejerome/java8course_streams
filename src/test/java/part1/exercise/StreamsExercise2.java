@@ -7,11 +7,10 @@ import data.JobHistoryEntry;
 import data.Person;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.*;
 import static org.junit.Assert.assertEquals;
 
 public class StreamsExercise2 {
@@ -22,13 +21,64 @@ public class StreamsExercise2 {
     // https://youtu.be/i0Jr2l3jrDA Сергей Куксенко — Stream API, часть 2
 
     // TODO class PersonEmployerPair
+    private static class PersonEmployerPair {
+        private final Person person;
+        private final String employer;
+
+        public PersonEmployerPair(Person person, String position) {
+            this.person = person;
+            this.employer = position;
+        }
+
+        public Person getPerson() {
+            return person;
+        }
+
+        public String getEmployer() {
+            return employer;
+        }
+    }
+
+    private static class PersonEmployerDuration {
+        private final Person person;
+        private final String employer;
+        private final int duration;
+
+        public PersonEmployerDuration(Person person, String position, int duration) {
+            this.person = person;
+            this.employer = position;
+            this.duration = duration;
+        }
+
+        public Person getPerson() {
+            return person;
+        }
+
+        public int getDuration() {
+            return duration;
+        }
+
+        public String getEmployer() {
+            return employer;
+        }
+    }
+
+    private static Stream<PersonEmployerPair> employeeToPairs(Employee employee) {
+        return employee.getJobHistory().stream()
+                .map(JobHistoryEntry::getEmployer)
+                .map(p -> new PersonEmployerPair(employee.getPerson(), p));
+    }
 
     @Test
     public void employersStuffLists() {
         final List<Employee> employees = getEmployees();
 
-        Map<String, List<Person>> employersStuffLists = null;
-        // TODO map employer vs persons with job history related to it
+        Map<String, List<Person>> employersStuffLists = employees
+                .stream()
+                .flatMap(StreamsExercise2::employeeToPairs)
+                .collect(groupingBy(PersonEmployerPair::getEmployer,
+                                mapping(PersonEmployerPair::getPerson,
+                                toList())));
 
         assertEquals(getExpectedEmployersStuffLists(), employersStuffLists);
     }
@@ -37,8 +87,11 @@ public class StreamsExercise2 {
     public void indexByFirstEmployer() {
         final List<Employee> employees = getEmployees();
 
-        Map<String, List<Person>> employeesIndex = null;
-        // TODO map employer vs persons with first job history related to it
+        Map<String, List<Person>> employeesIndex =  employees
+                .stream()
+                .map(employee -> new PersonEmployerPair(employee.getPerson(), employee.getJobHistory().get(0).getEmployer()))
+                .collect(groupingBy(PersonEmployerPair::getEmployer,
+                        mapping(PersonEmployerPair::getPerson, toList())));
 
         assertEquals(getExpectedEmployeesIndexByFirstEmployer(), employeesIndex);
 
@@ -46,8 +99,23 @@ public class StreamsExercise2 {
 
     @Test
     public void greatestExperiencePerEmployer() {
-        Map<String, Person> employeesIndex = null;
-        // TODO map employer vs person with greatest duration in it
+        Map<String, Person> employeesIndex = getEmployees()
+                .stream()
+                .flatMap(employee -> employee
+                        .getJobHistory()
+                        .stream()
+                        .map(jobHistoryEntry -> new PersonEmployerDuration(
+                                employee.getPerson(),
+                                jobHistoryEntry.getEmployer(),
+                                jobHistoryEntry.getDuration()
+                                )
+                        )
+                )
+                .collect(groupingBy(
+                        PersonEmployerDuration::getEmployer, collectingAndThen(
+                                maxBy(Comparator.comparing(PersonEmployerDuration::getDuration)), personEmployerDuration -> personEmployerDuration.get().getPerson())
+                        )
+                );
 
         assertEquals(new Person("John", "White", 28), employeesIndex.get("epam"));
     }

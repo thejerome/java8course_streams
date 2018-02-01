@@ -5,8 +5,10 @@ import data.JobHistoryEntry;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static data.Generator.generateEmployeeList;
+import static java.util.stream.Collectors.toList;
 import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -21,8 +23,15 @@ public class StreamsExercise1 {
 
     @Test
     public void getAllEpamEmployees() {
-        List<Employee> epamEmployees = null;
-        // TODO all persons with experience in epam
+        List<Employee> epamEmployees = generateEmployeeList()
+                .stream()
+                .filter(employee -> employee
+                        .getJobHistory()
+                        .stream()
+                        .allMatch(jobHistoryEntry -> jobHistoryEntry
+                                .getEmployer()
+                                .equalsIgnoreCase("epam")))
+                .collect(toList());
 
 
         epamEmployees.forEach(e -> assertTrue(
@@ -34,8 +43,17 @@ public class StreamsExercise1 {
 
     @Test
     public void getEmployeesStartedFromEpam() {
-        List<Employee> epamEmployees = null;
-        // TODO all persons with first experience in epam
+        List<Employee> epamEmployees = generateEmployeeList()
+                .stream()
+                .filter(employee -> employee
+                        .getJobHistory()
+                        .stream()
+                        .limit(1)
+                        .collect(toList())
+                        .get(0)
+                        .getEmployer()
+                        .equalsIgnoreCase("epam"))
+                .collect(toList());
 
         assertNotNull(epamEmployees);
         assertFalse(epamEmployees.isEmpty());
@@ -59,7 +77,12 @@ public class StreamsExercise1 {
             }
         }
 
-         Integer result = null;//TODO sum of all durations in epam job histories
+         Integer result = employees
+                 .stream()
+                 .flatMap(employee -> employee.getJobHistory().stream())
+                 .filter(jobHistoryEntry -> jobHistoryEntry.getEmployer().equalsIgnoreCase("epam"))
+                 .mapToInt(JobHistoryEntry::getDuration)
+                 .sum();
          assertEquals(expected, result);
     }
 
