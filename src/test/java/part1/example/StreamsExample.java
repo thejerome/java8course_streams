@@ -216,7 +216,7 @@ public class StreamsExample {
 //                        (p1, p2) -> p1.getDuration() > p2.getDuration() ? p1 : p2));
         return personPositionDurationStream
                 .collect(groupingBy(
-                        PersonPositionDuration::getPosition,
+                    personPositionDuration -> personPositionDuration.getPosition(),
                         collectingAndThen(
                                 maxBy(comparing(PersonPositionDuration::getDuration)), p -> p.get().getPerson())));
     }

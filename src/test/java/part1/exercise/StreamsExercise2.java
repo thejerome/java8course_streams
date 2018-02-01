@@ -5,6 +5,9 @@ import com.google.common.collect.ImmutableMap;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
+import java.util.HashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -22,12 +25,54 @@ public class StreamsExercise2 {
     // https://youtu.be/i0Jr2l3jrDA Сергей Куксенко — Stream API, часть 2
 
     // TODO class PersonEmployerPair
+    private static class PersonEmployerPair {
+      private final Person person;
+      private final String employer;
+
+      public PersonEmployerPair(Person person, String employee) {
+        this.person = person;
+        this.employer = employee;
+      }
+
+      public Person getPerson() {
+        return person;
+      }
+
+      public String getEmployer() {
+        return employer;
+      }
+    }
+
+    private static Stream<PersonEmployerPair> employerToPair(Employee employee) {
+      return employee.getJobHistory().stream()
+          .map(JobHistoryEntry::getEmployer)
+          .map(s -> new PersonEmployerPair(employee.getPerson(), s));
+    }
+
+  private static Stream<PersonEmployerPair> employerToPairWithFirstJob(Employee employee) {
+    return employee.getJobHistory().stream()
+        .limit(1)
+        .map(JobHistoryEntry::getEmployer)
+        .map(s -> new PersonEmployerPair(employee.getPerson(), s));
+  }
+
+  private static Stream<PersonEmployerPair> employerToPairWithBiigerDuration(Employee employee) {
+      employee.getJobHistory().stream().mapToInt(JobHistoryEntry::getDuration).max().getAsInt();
+    return employee.getJobHistory().stream()
+        .map(JobHistoryEntry::getEmployer)
+        .map(s -> new PersonEmployerPair(employee.getPerson(), s));
+  }
 
     @Test
     public void employersStuffLists() {
         final List<Employee> employees = getEmployees();
 
-        Map<String, List<Person>> employersStuffLists = null;
+        Map<String, List<Person>> employersStuffLists = employees.stream()
+            .flatMap(StreamsExercise2::employerToPair)
+            .collect(Collectors.groupingBy(
+                PersonEmployerPair::getEmployer,
+                Collectors.mapping(PersonEmployerPair::getPerson, Collectors.toList())
+            ));
         // TODO map employer vs persons with job history related to it
 
         assertEquals(getExpectedEmployersStuffLists(), employersStuffLists);
@@ -37,7 +82,13 @@ public class StreamsExercise2 {
     public void indexByFirstEmployer() {
         final List<Employee> employees = getEmployees();
 
-        Map<String, List<Person>> employeesIndex = null;
+        Map<String, List<Person>> employeesIndex = employees.stream()
+            .flatMap(StreamsExercise2::employerToPairWithFirstJob)
+            .collect(Collectors.groupingBy(
+                PersonEmployerPair::getEmployer,
+                Collectors.mapping(PersonEmployerPair::getPerson, Collectors.toList())
+            ));
+
         // TODO map employer vs persons with first job history related to it
 
         assertEquals(getExpectedEmployeesIndexByFirstEmployer(), employeesIndex);
@@ -47,7 +98,20 @@ public class StreamsExercise2 {
     @Test
     public void greatestExperiencePerEmployer() {
         Map<String, Person> employeesIndex = null;
-        // TODO map employer vs person with greatest duration in it
+      Employee employee = getEmployees().stream()
+          .max((o1, o2) -> {
+            int maxO1 = o1.getJobHistory().stream().mapToInt(JobHistoryEntry::getDuration).max()
+                .getAsInt();
+            int maxO2 = o2.getJobHistory().stream().mapToInt(JobHistoryEntry::getDuration).max()
+                .getAsInt();
+            return maxO1 - maxO2;
+          }).get();
+      employeesIndex = Stream.of(employee)
+          .flatMap(StreamsExercise2::employerToPair)
+          .collect(HashMap::new,(map, PEPair) ->
+              map.put(PEPair.employer,PEPair.person),
+              HashMap::putAll);
+      // TODO map employer vs person with greatest duration in it
 
         assertEquals(new Person("John", "White", 28), employeesIndex.get("epam"));
     }
