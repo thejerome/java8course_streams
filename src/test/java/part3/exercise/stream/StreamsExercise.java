@@ -133,8 +133,12 @@ public class StreamsExercise {
         // sum all durations for each person
         final List<Employee> employees = getEmployees();
 
-        final Map<Person, Integer> personDuration = null; // TODO use sumAllPersonDurations
-        employees.stream()
+        final Map<Person, Integer> personDuration =  // DONE: use sumAllPersonDurations
+            employees.stream().collect(
+                Collectors.toMap(
+                        Employee::getPerson,
+                        e -> c(e).duration
+                ));
 
 
         assertEquals(Integer.valueOf(8), personDuration.get(new Person("John", "Doe", 24)));
