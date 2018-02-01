@@ -5,6 +5,7 @@ import data.JobHistoryEntry;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static data.Generator.generateEmployeeList;
 import static junit.framework.TestCase.assertFalse;
@@ -23,6 +24,16 @@ public class StreamsExercise1 {
     public void getAllEpamEmployees() {
         List<Employee> epamEmployees = null;
         // TODO all persons with experience in epam
+        // assuming we get only employees
+        // whose career was in epam exclusively
+        epamEmployees = generateEmployeeList().stream()
+                .filter(
+                        empl -> empl.getJobHistory().stream()
+                                .allMatch(
+                                        job -> "epam".equals(job.getEmployer())
+                                )
+                )
+                .collect(Collectors.toList());
 
 
         epamEmployees.forEach(e -> assertTrue(
@@ -36,6 +47,16 @@ public class StreamsExercise1 {
     public void getEmployeesStartedFromEpam() {
         List<Employee> epamEmployees = null;
         // TODO all persons with first experience in epam
+        // assuming we get employee-entities,
+        // not person-entities as in TODO
+        epamEmployees = generateEmployeeList().stream()
+                .filter(emp -> !emp.getJobHistory().isEmpty())
+                .filter(
+                        emp -> "epam".equals(
+                                emp.getJobHistory().get(0).getEmployer()
+                        )
+                )
+                .collect(Collectors.toList());
 
         assertNotNull(epamEmployees);
         assertFalse(epamEmployees.isEmpty());
@@ -60,6 +81,11 @@ public class StreamsExercise1 {
         }
 
          Integer result = null;//TODO sum of all durations in epam job histories
+        result = employees.stream()
+                .flatMap(empl -> empl.getJobHistory().stream())
+                .filter(job -> "epam".equals(job.getEmployer()))
+                .map(JobHistoryEntry::getDuration)
+                .reduce(0, Integer::sum);
          assertEquals(expected, result);
     }
 

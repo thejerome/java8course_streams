@@ -7,10 +7,13 @@ import data.JobHistoryEntry;
 import data.Person;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -22,6 +25,34 @@ public class StreamsExercise2 {
     // https://youtu.be/i0Jr2l3jrDA Сергей Куксенко — Stream API, часть 2
 
     // TODO class PersonEmployerPair
+    class PersonEmployerPair {
+        private String employer;
+        private Person person;
+        private int duration;
+
+        public PersonEmployerPair(String employer, Person person) {
+            this.employer = employer;
+            this.person = person;
+        }
+
+        public PersonEmployerPair(String employer, Person person, int duration) {
+            this.employer = employer;
+            this.person = person;
+            this.duration = duration;
+        }
+
+        public String getEmployer() {
+            return employer;
+        }
+
+        public Person getPerson() {
+            return person;
+        }
+
+        public int getDuration() {
+            return duration;
+        }
+    }
 
     @Test
     public void employersStuffLists() {
@@ -29,6 +60,23 @@ public class StreamsExercise2 {
 
         Map<String, List<Person>> employersStuffLists = null;
         // TODO map employer vs persons with job history related to it
+        employersStuffLists = getEmployees().stream()
+                .filter(emp -> !emp.getJobHistory().isEmpty())
+                .flatMap(emp -> emp.getJobHistory().stream()
+                        .map(
+                                job -> new PersonEmployerPair(job.getEmployer(), emp.getPerson())
+                        )
+                )
+                .collect(
+                        Collectors.toMap(
+                                PersonEmployerPair::getEmployer,
+                                pair -> new ArrayList<>(Collections.singletonList(pair.getPerson())),
+                                (old, neww) -> {
+                                    old.addAll(neww);
+                                    return old;
+                                }
+                        )
+                );
 
         assertEquals(getExpectedEmployersStuffLists(), employersStuffLists);
     }
@@ -39,6 +87,19 @@ public class StreamsExercise2 {
 
         Map<String, List<Person>> employeesIndex = null;
         // TODO map employer vs persons with first job history related to it
+        employeesIndex = getEmployees().stream()
+                .filter(emp -> !emp.getJobHistory().isEmpty())
+                .map(emp -> new PersonEmployerPair(emp.getJobHistory().get(0).getEmployer(), emp.getPerson()))
+                .collect(
+                        Collectors.toMap(
+                                PersonEmployerPair::getEmployer,
+                                pair -> new ArrayList<>(Collections.singletonList(pair.getPerson())),
+                                (old, neww) -> {
+                                    old.addAll(neww);
+                                    return old;
+                                }
+                        )
+                );
 
         assertEquals(getExpectedEmployeesIndexByFirstEmployer(), employeesIndex);
 
@@ -48,6 +109,23 @@ public class StreamsExercise2 {
     public void greatestExperiencePerEmployer() {
         Map<String, Person> employeesIndex = null;
         // TODO map employer vs person with greatest duration in it
+        employeesIndex = getEmployees().stream()
+                .filter(emp -> !emp.getJobHistory().isEmpty())
+                .flatMap(emp -> emp.getJobHistory().stream()
+                        .map(job -> new PersonEmployerPair(job.getEmployer(), emp.getPerson(), job.getDuration()))
+                )
+                .collect(
+                        Collectors.groupingBy(
+                                PersonEmployerPair::getEmployer,
+                                Collectors.collectingAndThen(
+                                        Collectors.maxBy(Comparator.comparingInt(PersonEmployerPair::getDuration)),
+                                        pair -> {
+                                            if (pair.isPresent()) return pair.get().getPerson();
+                                            else return null;
+                                        }
+                                )
+                        )
+                );
 
         assertEquals(new Person("John", "White", 28), employeesIndex.get("epam"));
     }
