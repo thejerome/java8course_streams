@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.assertEquals;
 
 public class StreamsExercise {
@@ -127,7 +128,12 @@ public class StreamsExercise {
                         i -> new PersonDuration(e.getPerson(), i)
                 ));
     }
-
+    private Integer sumAllPersonDurations(Employee e) {
+        return e.getJobHistory()
+                .stream()
+                .mapToInt(JobHistoryEntry::getDuration)
+                .sum();
+    }
     @Test
     public void getSumPersonDuration() {
         // sum all durations for each person
@@ -137,7 +143,7 @@ public class StreamsExercise {
             employees.stream().collect(
                 Collectors.toMap(
                         Employee::getPerson,
-                        e -> c(e).duration
+                        this::sumAllPersonDurations
                 ));
 
 
@@ -163,15 +169,28 @@ public class StreamsExercise {
     }
 
     private static PersonPositionIndex getPersonPositionIndex(Employee e) {
-        // TODO
-        throw new UnsupportedOperationException();
+        // DONE
+        //throw new UnsupportedOperationException();
+        return e.getJobHistory().stream().collect(
+                Collectors.collectingAndThen(
+                        toMap(
+                                JobHistoryEntry::getPosition,
+                                JobHistoryEntry::getDuration,
+                                (v1, v2) -> v1 + v2
+                        ),
+                        map -> new PersonPositionIndex(e.getPerson(), map)
+                )
+        );
     }
+
 
     @Test
     public void getSumDurationsForPersonByPosition() {
         final List<Employee> employees = getEmployees();
 
-        final List<PersonPositionIndex> personIndexes = null; // TODO use getPersonPositionIndex
+        final List<PersonPositionIndex> personIndexes = employees.stream() // DONE use getPersonPositionIndex
+                .map(StreamsExercise::getPersonPositionIndex)
+                .collect(Collectors.toList());
 
         assertEquals(1, personIndexes.get(3).getDurationByPositionIndex().size());
     }
