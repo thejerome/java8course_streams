@@ -3,6 +3,10 @@ package part3.exercise.stream;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
+import java.util.Comparator;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.junit.Test;
 
@@ -19,17 +23,23 @@ public class StreamsExercise {
     public void getAllJobHistoryEntries() {
         final List<Employee> employees = getEmployees();
 
-        final List<JobHistoryEntry> jobHistoryEntries = null; // TODO
+        final List<JobHistoryEntry> jobHistoryEntries =  employees
+            .stream()
+            .flatMap(e -> e.getJobHistory().stream())
+            .collect(Collectors.toList());
 
         assertEquals(22, jobHistoryEntries.size());
     }
 
     @Test
     public void getSumDuration() {
-        // sum all durations for all persons
+
         final List<Employee> employees = getEmployees();
 
-        final int sumDurations = 0; // TODO
+        final int sumDurations = employees.stream()
+                                          .flatMap(e -> e.getJobHistory().stream())
+                                          .mapToInt(JobHistoryEntry::getDuration)
+                                          .sum();
 
         assertEquals(72, sumDurations);
     }
@@ -54,9 +64,9 @@ public class StreamsExercise {
         @Override
         public String toString() {
             return new ToStringBuilder(this)
-                    .append("person", person)
-                    .append("employer", employer)
-                    .toString();
+                .append("person", person)
+                .append("employer", employer)
+                .toString();
         }
     }
 
@@ -64,7 +74,13 @@ public class StreamsExercise {
     public void indexPersonsByEmployer1() {
         final List<Employee> employees = getEmployees();
 
-        final Map<String, List<PersonEmployer>> index = null; // TODO
+        final Map<String, List<PersonEmployer>> index = employees
+            .stream()
+            .flatMap(employee -> employee.getJobHistory()
+                                         .stream()
+                                         .map(h -> new PersonEmployer(employee.getPerson(),
+                                             h.getEmployer())))
+            .collect(Collectors.groupingBy(PersonEmployer::getEmployer));
 
         assertEquals(11, index.get("epam").size());
     }
@@ -73,7 +89,15 @@ public class StreamsExercise {
     public void indexPersonsByEmployer2() {
         final List<Employee> employees = getEmployees();
 
-        final Map<String, List<Person>> index = null; // TODO
+        final Map<String, List<Person>> index = employees
+            .stream()
+            .flatMap(employee -> employee.getJobHistory()
+                                         .stream()
+                                         .map(h -> new PersonEmployer(employee.getPerson(),
+                                             h.getEmployer())))
+            .collect(Collectors.groupingBy(PersonEmployer::getEmployer,
+                Collectors.mapping(PersonEmployer::getPerson,
+                    Collectors.toList())));
 
         assertEquals(11, index.get("epam").size());
     }
@@ -98,15 +122,18 @@ public class StreamsExercise {
         @Override
         public String toString() {
             return new ToStringBuilder(this)
-                    .append("person", person)
-                    .append("duration", duration)
-                    .toString();
+                .append("person", person)
+                .append("duration", duration)
+                .toString();
         }
     }
 
     private PersonDuration sumAllPersonDurations(Employee e) {
-        // TODO
-        throw new UnsupportedOperationException();
+        return new PersonDuration(e.getPerson(),
+            e.getJobHistory()
+             .stream()
+             .mapToInt(JobHistoryEntry::getDuration)
+             .sum());
     }
 
     @Test
@@ -114,7 +141,12 @@ public class StreamsExercise {
         // sum all durations for each person
         final List<Employee> employees = getEmployees();
 
-        final Map<Person, Integer> personDuration = null; // TODO use sumAllPersonDurations
+        final Map<Person, Integer> personDuration =employees.stream()
+                                                            .map(this::sumAllPersonDurations)
+                                                            .collect(Collectors.toMap(
+                                                                PersonDuration::getPerson,
+                                                                PersonDuration::getDuration
+                                                            ));
 
         assertEquals(Integer.valueOf(8), personDuration.get(new Person("John", "Doe", 24)));
     }
@@ -138,15 +170,21 @@ public class StreamsExercise {
     }
 
     private static PersonPositionIndex getPersonPositionIndex(Employee e) {
-        // TODO
-        throw new UnsupportedOperationException();
+        return new PersonPositionIndex(e.getPerson(),
+            e.getJobHistory()
+             .stream()
+             .collect(Collectors.toMap(JobHistoryEntry::getPosition,
+                 JobHistoryEntry::getDuration,
+                 (d1, d2) -> d1 + d2)));
     }
 
     @Test
     public void getSumDurationsForPersonByPosition() {
         final List<Employee> employees = getEmployees();
 
-        final List<PersonPositionIndex> personIndexes = null; // TODO use getPersonPositionIndex
+        final List<PersonPositionIndex> personIndexes = employees.stream()
+                                                                 .map(StreamsExercise::getPersonPositionIndex)
+                                                                 .collect(Collectors.toList());
 
         assertEquals(1, personIndexes.get(3).getDurationByPositionIndex().size());
     }
@@ -179,29 +217,67 @@ public class StreamsExercise {
     public void getDurationsForEachPersonByPosition() {
         final List<Employee> employees = getEmployees();
 
-        final List<PersonPositionDuration> personPositionDurations =  null; // TODO
-
+        final List<PersonPositionDuration> personPositionDurations =  employees.stream()
+                                                                               .map(StreamsExercise::getPersonPositionIndex)
+                                                                               .flatMap(ppi -> ppi.getDurationByPositionIndex()
+                                                                                                  .entrySet()
+                                                                                                  .stream()
+                                                                                                  .map(e -> new PersonPositionDuration(
+                                                                                                      ppi.getPerson(),
+                                                                                                      e.getKey(),
+                                                                                                      e.getValue())))
+                                                                               .collect(Collectors.toList());
 
         assertEquals(17, personPositionDurations.size());
     }
 
     @Test
     public void getCoolestPersonByPosition1() {
-        // Get person with max duration on given position
+
         final List<Employee> employees = getEmployees();
 
-        final Map<String, PersonPositionDuration> coolestPersonByPosition = null;// TODO
-
+        final Map<String, PersonPositionDuration> coolestPersonByPosition =
+            employees.stream()
+                     .map(StreamsExercise::getPersonPositionIndex)
+                     .flatMap(ppi -> ppi.getDurationByPositionIndex()
+                                        .entrySet()
+                                        .stream()
+                                        .map(e -> new PersonPositionDuration(
+                                            ppi.getPerson(),
+                                            e.getKey(),
+                                            e.getValue())))
+                     .collect(Collectors.toMap(PersonPositionDuration::getPosition,
+                         Function.identity(),
+                         BinaryOperator.maxBy(Comparator.comparingInt(
+                             PersonPositionDuration::getDuration))));
 
         assertEquals(new Person("John", "White", 22), coolestPersonByPosition.get("QA").getPerson());
     }
 
     @Test
     public void getCoolestPersonByPosition2() {
-        // Get person with max duration on given position
+
         final List<Employee> employees = getEmployees();
 
-        final Map<String, Person> coolestPersonByPosition = null; // TODO
+        final Map<String, Person> coolestPersonByPosition =
+            employees.stream()
+                     .map(StreamsExercise::getPersonPositionIndex)
+                     .flatMap(ppi -> ppi.getDurationByPositionIndex()
+                                        .entrySet()
+                                        .stream()
+                                        .map(e -> new PersonPositionDuration(
+                                            ppi.getPerson(),
+                                            e.getKey(),
+                                            e.getValue())))
+                     .collect(Collectors.groupingBy(
+                         PersonPositionDuration::getPosition,
+                         Collectors.collectingAndThen(
+                             Collectors.maxBy(
+                                 Comparator.comparingInt(
+                                     PersonPositionDuration::getDuration)),
+                             r -> r.get()
+                                   .getPerson()
+                         )));
 
 
         assertEquals(new Person("John", "White", 22), coolestPersonByPosition.get("QA"));
@@ -209,75 +285,75 @@ public class StreamsExercise {
 
     private List<Employee> getEmployees() {
         return Arrays.asList(
-                new Employee(
-                        new Person("John", "Galt", 20),
-                        Collections.emptyList()),
-                new Employee(
-                        new Person("John", "Doe", 21),
-                        Arrays.asList(
-                                new JobHistoryEntry(4, "BA", "yandex"),
-                                new JobHistoryEntry(2, "QA", "epam"),
-                                new JobHistoryEntry(2, "dev", "abc")
-                        )),
-                new Employee(
-                        new Person("John", "White", 22),
-                        Collections.singletonList(
-                                new JobHistoryEntry(6, "QA", "epam")
-                        )),
-                new Employee(
-                        new Person("John", "Galt", 23),
-                        Arrays.asList(
-                                new JobHistoryEntry(3, "dev", "epam"),
-                                new JobHistoryEntry(2, "dev", "google")
-                        )),
-                new Employee(
-                        new Person("John", "Doe", 24),
-                        Arrays.asList(
-                                new JobHistoryEntry(4, "QA", "yandex"),
-                                new JobHistoryEntry(2, "BA", "epam"),
-                                new JobHistoryEntry(2, "dev", "abc")
-                        )),
-                new Employee(
-                        new Person("John", "White", 25),
-                        Collections.singletonList(
-                                new JobHistoryEntry(6, "QA", "epam")
-                        )),
-                new Employee(
-                        new Person("John", "Galt", 26),
-                        Arrays.asList(
-                                new JobHistoryEntry(3, "dev", "epam"),
-                                new JobHistoryEntry(1, "dev", "google")
-                        )),
-                new Employee(
-                        new Person("Bob", "Doe", 27),
-                        Arrays.asList(
-                                new JobHistoryEntry(4, "QA", "yandex"),
-                                new JobHistoryEntry(2, "QA", "epam"),
-                                new JobHistoryEntry(2, "dev", "abc")
-                        )),
-                new Employee(
-                        new Person("John", "White", 28),
-                        Collections.singletonList(
-                                new JobHistoryEntry(6, "BA", "epam")
-                        )),
-                new Employee(
-                        new Person("John", "Galt", 29),
-                        Arrays.asList(
-                                new JobHistoryEntry(3, "dev", "epam"),
-                                new JobHistoryEntry(1, "dev", "google")
-                        )),
-                new Employee(
-                        new Person("John", "Doe", 30),
-                        Arrays.asList(
-                                new JobHistoryEntry(4, "QA", "yandex"),
-                                new JobHistoryEntry(2, "QA", "epam"),
-                                new JobHistoryEntry(5, "dev", "abc")
-                        )),
-                new Employee(
-                        new Person("Bob", "White", 31),
-                        Collections.singletonList(
-                                new JobHistoryEntry(6, "QA", "epam")
-                        ))
+            new Employee(
+                new Person("John", "Galt", 20),
+                Collections.emptyList()),
+            new Employee(
+                new Person("John", "Doe", 21),
+                Arrays.asList(
+                    new JobHistoryEntry(4, "BA", "yandex"),
+                    new JobHistoryEntry(2, "QA", "epam"),
+                    new JobHistoryEntry(2, "dev", "abc")
+                )),
+            new Employee(
+                new Person("John", "White", 22),
+                Collections.singletonList(
+                    new JobHistoryEntry(6, "QA", "epam")
+                )),
+            new Employee(
+                new Person("John", "Galt", 23),
+                Arrays.asList(
+                    new JobHistoryEntry(3, "dev", "epam"),
+                    new JobHistoryEntry(2, "dev", "google")
+                )),
+            new Employee(
+                new Person("John", "Doe", 24),
+                Arrays.asList(
+                    new JobHistoryEntry(4, "QA", "yandex"),
+                    new JobHistoryEntry(2, "BA", "epam"),
+                    new JobHistoryEntry(2, "dev", "abc")
+                )),
+            new Employee(
+                new Person("John", "White", 25),
+                Collections.singletonList(
+                    new JobHistoryEntry(6, "QA", "epam")
+                )),
+            new Employee(
+                new Person("John", "Galt", 26),
+                Arrays.asList(
+                    new JobHistoryEntry(3, "dev", "epam"),
+                    new JobHistoryEntry(1, "dev", "google")
+                )),
+            new Employee(
+                new Person("Bob", "Doe", 27),
+                Arrays.asList(
+                    new JobHistoryEntry(4, "QA", "yandex"),
+                    new JobHistoryEntry(2, "QA", "epam"),
+                    new JobHistoryEntry(2, "dev", "abc")
+                )),
+            new Employee(
+                new Person("John", "White", 28),
+                Collections.singletonList(
+                    new JobHistoryEntry(6, "BA", "epam")
+                )),
+            new Employee(
+                new Person("John", "Galt", 29),
+                Arrays.asList(
+                    new JobHistoryEntry(3, "dev", "epam"),
+                    new JobHistoryEntry(1, "dev", "google")
+                )),
+            new Employee(
+                new Person("John", "Doe", 30),
+                Arrays.asList(
+                    new JobHistoryEntry(4, "QA", "yandex"),
+                    new JobHistoryEntry(2, "QA", "epam"),
+                    new JobHistoryEntry(5, "dev", "abc")
+                )),
+            new Employee(
+                new Person("Bob", "White", 31),
+                Collections.singletonList(
+                    new JobHistoryEntry(6, "QA", "epam")
+                ))
         );
     }
 
