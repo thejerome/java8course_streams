@@ -118,12 +118,14 @@ public class StreamsExercise {
         }
     }
 
-    private PersonDuration sumAllPersonDurations(Employee e) {
+    private PersonDuration c(Employee e) {
         // DONE
         //throw new UnsupportedOperationException();
-        return new PersonDuration(
-                e.getPerson(), e.getJobHistory().stream().mapToInt(JobHistoryEntry::getDuration)
-                .sum());
+        return e.getJobHistory().stream().collect(
+                Collectors.collectingAndThen(
+                        Collectors.summingInt(JobHistoryEntry::getDuration),
+                        i -> new PersonDuration(e.getPerson(), i)
+                ));
     }
 
     @Test
