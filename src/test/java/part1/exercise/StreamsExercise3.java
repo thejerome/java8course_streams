@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.assertEquals;
 
 public class StreamsExercise3 {
@@ -43,20 +44,7 @@ public class StreamsExercise3 {
                 .map(String::toLowerCase)
                 .filter(s -> s.length() >= 4)
                 .map(s -> new Pair<>(s, 1))
-                .reduce(new HashMap<String, Integer>(),
-                        (m, p) -> {
-                            HashMap<String, Integer> m1 = m;
-                            if (m1.containsKey(p.getKey())) {
-                                m1.put(p.getKey(), m1.get(p.getKey()) + 1);
-                            } else {
-                                m1.put(p.getKey(), p.getValue());
-                            }
-                            return m1;
-                        },
-                        (m1, m2) -> {
-                            m1.forEach((key, value) -> m2.merge(key, value, (v1, v2) -> v1 + v2));
-                            return m2;
-                        })
+                .collect(toMap(Pair::getKey,Pair::getValue, (v1,v2) -> v1 + v2))
                 .entrySet().stream()
                 .filter(e -> e.getValue() >= 10)
                 .sorted(compareByCount.thenComparing(compareByLetter))
