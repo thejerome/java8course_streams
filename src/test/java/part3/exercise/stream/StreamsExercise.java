@@ -70,7 +70,10 @@ public class StreamsExercise {
     public void indexPersonsByEmployer1() {
         final List<Employee> employees = getEmployees();
 
-        final Map<String, List<PersonEmployer>> index = null; // TODO
+        final Map<String, List<PersonEmployer>> index = employees.stream() // TODO
+                .flatMap(e -> e.getJobHistory().stream()
+                        .map(j -> new PersonEmployer(e.getPerson(), j.getEmployer())))
+                .collect(Collectors.groupingBy(PersonEmployer::getEmployer));
 
         assertEquals(11, index.get("epam").size());
     }
@@ -79,7 +82,12 @@ public class StreamsExercise {
     public void indexPersonsByEmployer2() {
         final List<Employee> employees = getEmployees();
 
-        final Map<String, List<Person>> index = null; // TODO
+        final Map<String, List<Person>> index = null; employees.stream() // TODO
+                .flatMap(e -> e.getJobHistory().stream()
+                        .map(j -> new PersonEmployer(e.getPerson(), j.getEmployer())))
+                .collect(Collectors.groupingBy(
+                        PersonEmployer::getEmployer,
+                        Collectors.mapping(PersonEmployer::getPerson)));
 
         assertEquals(11, index.get("epam").size());
     }
