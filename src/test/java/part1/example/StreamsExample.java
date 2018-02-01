@@ -282,7 +282,7 @@ public class StreamsExample {
         System.out.println("sum: " + sumDuration);
     }
 
-    private List<Employee> getEmployees() {
+    public List<Employee> getEmployees() {
         return Arrays.asList(
                 new Employee(
                         new Person("John", "Galt", 20),
