@@ -8,6 +8,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
+import javafx.util.Pair;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
@@ -17,7 +21,29 @@ public class CollectorsExercise1 {
     @Test
     public void testPersonToHisLongestJobDuration() {
 
-        Map<Person, Integer> collected = null;//getEmployees()
+        Map<Person, Integer> collected = getEmployees().stream()
+                .collect(toMap(
+                        Employee::getPerson,
+                        e -> e.getJobHistory().stream()
+                                .mapToInt(JobHistoryEntry::getDuration)
+                                .max().orElse(0)
+                ));
+
+//                .collect(
+//                        toMap(
+//                                Employee::getPerson,
+//                                e -> e.getJobHistory().stream()
+//                                        .max(
+//                                                Comparator.comparingInt(
+//                                                        JobHistoryEntry::getDuration
+//                                                )
+//                                        ).orElseGet(
+//                                                () -> new JobHistoryEntry(0, "", "")
+//                                        ).getDuration()
+//                        )
+//                );
+
+        // can't manage to do it using Collectors.maxBy().
 
         Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
                 .put(new Person("John", "Galt", 20), 3)
@@ -39,8 +65,14 @@ public class CollectorsExercise1 {
     @Test
     public void testPersonToHisTotalJobDuration() {
 
-        Map<Person, Integer> collected = null;
-
+        Map<Person, Integer> collected = getEmployees().stream()
+                .collect(toMap(
+                        Employee::getPerson,
+                        e -> e.getJobHistory().stream()
+                                .mapToInt(JobHistoryEntry::getDuration)
+                                .sum()
+                        )
+                );
 
         Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
                 .put(new Person("John", "Galt", 20), 5)
@@ -65,6 +97,29 @@ public class CollectorsExercise1 {
 
         //Implement custom Collector
         Map<String, Integer> collected = null;
+
+        collected = getEmployees().stream()
+                .flatMap(
+                        employee -> Stream.of(
+                                new Pair<>(employee.getPerson().getFirstName(),
+                                        employee.getJobHistory().stream()
+                                                .mapToInt(JobHistoryEntry::getDuration)
+                                                .sum()
+                                ),
+                                new Pair<>(employee.getPerson().getLastName(),
+                                        employee.getJobHistory().stream()
+                                                .mapToInt(JobHistoryEntry::getDuration)
+                                                .sum()
+                                )
+                        )
+                )
+                .collect(Collector.of(
+                        (Supplier<HashMap<String, Integer>>) HashMap::new,
+                        (map, o) -> map.merge(o.getKey(), o.getValue(), Integer::sum),
+                        (map1, map2) -> {
+                            map1.putAll(map2);
+                            return map1;
+                        }));
 
         Map<String, Integer> expected = ImmutableMap.<String, Integer>builder()
                 .put("John", 5 + 8 + 6 + 5 + 8 + 6 + 4 + 8 + 6 + 4 + 11 + 6 - 8 - 6)
