@@ -13,8 +13,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.util.Comparator.comparingInt;
-import static java.util.function.BinaryOperator.maxBy;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.assertEquals;
 
@@ -276,7 +277,23 @@ public class StreamsExercise {
         // Get person with max duration on given position
         final List<Employee> employees = getEmployees();
 
-        final Map<String, Person> coolestPersonByPosition = null; // TODO
+        final Map<String, Person> coolestPersonByPosition = // TODO
+            employees.stream()
+                    .map(StreamsExercise::getPersonPositionIndex)
+                    .flatMap(i -> i.getDurationByPositionIndex().entrySet().stream()
+                            .map(entry -> new PersonPositionDuration(
+                                    i.getPerson(),
+                                    entry.getKey(),
+                                    entry.getValue())
+                            )
+                    )
+                    .collect(groupingBy(
+                            PersonPositionDuration::getPosition,
+                            collectingAndThen(
+                                    Collectors.maxBy(comparing(PersonPositionDuration::getDuration)),
+                                    p -> p.get().getPerson())
+                            )
+                    );
 
 
         assertEquals(new Person("John", "White", 22), coolestPersonByPosition.get("QA"));
