@@ -85,7 +85,7 @@ public class LambdaExercise {
 
         assertEquals("John", getPersonName.apply(person));
 
-        final Predicate<String> isJohnString = String.class::isInstance; // TODO using method reference check that "John" equals string parameter
+        final Predicate<String> isJohnString = "John"::equals; // TODO using method reference check that "John" equals string parameter
 
         final Predicate<Person> isJohnPerson = combine(getPersonName, isJohnString);
 
