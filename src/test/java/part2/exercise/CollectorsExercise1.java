@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -14,68 +16,109 @@ import static java.util.stream.Collectors.*;
 
 public class CollectorsExercise1 {
 
-    @Test
-    public void testPersonToHisLongestJobDuration() {
+  @Test
+  public void testPersonToHisLongestJobDuration() {
 
-        Map<Person, Integer> collected = null;//getEmployees()
+    Map<Person, Integer> collected = getEmployees().stream()
+        .collect(toMap(Employee::getPerson, employee -> employee.getJobHistory()
+            .stream()
+            .max(Comparator.comparingInt(JobHistoryEntry::getDuration))
+            .get().getDuration()));
 
-        Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
-                .put(new Person("John", "Galt", 20), 3)
-                .put(new Person("John", "Doe", 21), 4)
-                .put(new Person("John", "White", 22), 6)
-                .put(new Person("John", "Galt", 23), 3)
-                .put(new Person("John", "Doe", 24), 4)
-                .put(new Person("John", "White", 25), 6)
-                .put(new Person("John", "Galt", 26), 3)
-                .put(new Person("Bob", "Doe", 27), 4)
-                .put(new Person("John", "White", 28), 6)
-                .put(new Person("John", "Galt", 29), 3)
-                .put(new Person("John", "Doe", 30), 5)
-                .put(new Person("Bob", "White", 31), 6)
-                .build();
-        Assert.assertEquals(expected, collected);
+    Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
+        .put(new Person("John", "Galt", 20), 3)
+        .put(new Person("John", "Doe", 21), 4)
+        .put(new Person("John", "White", 22), 6)
+        .put(new Person("John", "Galt", 23), 3)
+        .put(new Person("John", "Doe", 24), 4)
+        .put(new Person("John", "White", 25), 6)
+        .put(new Person("John", "Galt", 26), 3)
+        .put(new Person("Bob", "Doe", 27), 4)
+        .put(new Person("John", "White", 28), 6)
+        .put(new Person("John", "Galt", 29), 3)
+        .put(new Person("John", "Doe", 30), 5)
+        .put(new Person("Bob", "White", 31), 6)
+        .build();
+    Assert.assertEquals(expected, collected);
+  }
+
+  @Test
+  public void testPersonToHisTotalJobDuration() {
+
+    Map<Person, Integer> collected = getEmployees().stream()
+        .collect(toMap(Employee::getPerson, this::getDurationSum));
+
+
+    Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
+        .put(new Person("John", "Galt", 20), 5)
+        .put(new Person("John", "Doe", 21), 8)
+        .put(new Person("John", "White", 22), 6)
+        .put(new Person("John", "Galt", 23), 5)
+        .put(new Person("John", "Doe", 24), 8)
+        .put(new Person("John", "White", 25), 6)
+        .put(new Person("John", "Galt", 26), 4)
+        .put(new Person("Bob", "Doe", 27), 8)
+        .put(new Person("John", "White", 28), 6)
+        .put(new Person("John", "Galt", 29), 4)
+        .put(new Person("John", "Doe", 30), 11)
+        .put(new Person("Bob", "White", 31), 6)
+        .build();
+
+    Assert.assertEquals(expected, collected);
+  }
+
+  class Pair {
+    private String name;
+    private Integer duration;
+
+    public String getName() {
+      return name;
     }
 
-    @Test
-    public void testPersonToHisTotalJobDuration() {
-
-        Map<Person, Integer> collected = null;
-
-
-        Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
-                .put(new Person("John", "Galt", 20), 5)
-                .put(new Person("John", "Doe", 21), 8)
-                .put(new Person("John", "White", 22), 6)
-                .put(new Person("John", "Galt", 23), 5)
-                .put(new Person("John", "Doe", 24), 8)
-                .put(new Person("John", "White", 25), 6)
-                .put(new Person("John", "Galt", 26), 4)
-                .put(new Person("Bob", "Doe", 27), 8)
-                .put(new Person("John", "White", 28), 6)
-                .put(new Person("John", "Galt", 29), 4)
-                .put(new Person("John", "Doe", 30), 11)
-                .put(new Person("Bob", "White", 31), 6)
-                .build();
-
-        Assert.assertEquals(expected, collected);
+    public Integer getDuration() {
+      return duration;
     }
 
-    @Test
-    public void testTotalJobDurationPerNameAndSurname(){
-
-        //Implement custom Collector
-        Map<String, Integer> collected = null;
-
-        Map<String, Integer> expected = ImmutableMap.<String, Integer>builder()
-                .put("John", 5 + 8 + 6 + 5 + 8 + 6 + 4 + 8 + 6 + 4 + 11 + 6 - 8 - 6)
-                .put("Bob", 8 + 6)
-                .put("Galt", 5 + 5 + 4 + 4)
-                .put("Doe", 8 + 8 + 8 + 11)
-                .put("White", 6 + 6 + 6 + 6)
-                .build();
-
-        Assert.assertEquals(expected, collected);
+    public Pair(String name, Integer duration) {
+      this.name = name;
+      this.duration = duration;
     }
+  }
+
+  @Test
+  public void testTotalJobDurationPerNameAndSurname(){
+
+    //Implement custom Collector
+    Map<String, Integer> collected = getEmployees()
+        .stream()
+        .flatMap(employee -> Stream.of(
+            new Pair(employee.getPerson().getFirstName(), getDurationSum(employee)),
+            new Pair(employee.getPerson().getLastName(), getDurationSum(employee))))
+        .collect(Collector.of(
+            HashMap::new,
+            (hm, p) -> hm.merge(p.getName(), p.getDuration(), Integer::sum),
+            (hm1, hm2) -> {
+              hm1.putAll(hm2);
+              return hm1;
+            }));
+
+    Map<String, Integer> expected = ImmutableMap.<String, Integer>builder()
+        .put("John", 5 + 8 + 6 + 5 + 8 + 6 + 4 + 8 + 6 + 4 + 11 + 6 - 8 - 6)
+        .put("Bob", 8 + 6)
+        .put("Galt", 5 + 5 + 4 + 4)
+        .put("Doe", 8 + 8 + 8 + 11)
+        .put("White", 6 + 6 + 6 + 6)
+        .build();
+
+    Assert.assertEquals(expected, collected);
+  }
+
+  private int getDurationSum(Employee employee) {
+    return employee.getJobHistory()
+        .stream()
+        .mapToInt(JobHistoryEntry::getDuration)
+        .sum();
+  }
 
     private List<Employee> getEmployees() {
         return Arrays.asList(
