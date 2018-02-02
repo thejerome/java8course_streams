@@ -3,6 +3,10 @@ package part3.exercise.stream;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -228,8 +232,13 @@ public class StreamsExercise {
         // Get person with max duration on given position
         final List<Employee> employees = getEmployees();
 
-        final Map<String, PersonPositionDuration> coolestPersonByPosition = null;// TODO
-
+        // TODO
+        final Map<String, PersonPositionDuration> coolestPersonByPosition = employees.stream()
+            .map(StreamsExercise::getPersonPositionIndex)
+            .flatMap(ppi -> ppi.getDurationByPositionIndex().entrySet().stream()
+                .map(p -> new PersonPositionDuration(ppi.getPerson(), p.getKey(), p.getValue())))
+            .collect(Collectors.toMap(PersonPositionDuration::getPosition, Function.identity(),
+                BinaryOperator.maxBy((o1, o2) -> o1.getDuration() - o2.getDuration())));
 
         assertEquals(new Person("John", "White", 22), coolestPersonByPosition.get("QA").getPerson());
     }
@@ -239,8 +248,15 @@ public class StreamsExercise {
         // Get person with max duration on given position
         final List<Employee> employees = getEmployees();
 
-        final Map<String, Person> coolestPersonByPosition = null; // TODO
-
+        // TODO
+        final Map<String, Person> coolestPersonByPosition = employees.stream()
+            .map(StreamsExercise::getPersonPositionIndex)
+            .flatMap(ppi -> ppi.getDurationByPositionIndex().entrySet().stream()
+                .map(p -> new PersonPositionDuration(ppi.getPerson(), p.getKey(), p.getValue())))
+            .collect(Collectors.groupingBy(PersonPositionDuration::getPosition,
+                Collectors.collectingAndThen(
+                    Collectors.maxBy((o1, o2) -> o1.getDuration() - o2.getDuration()),
+                    f -> f.get().getPerson())));
 
         assertEquals(new Person("John", "White", 22), coolestPersonByPosition.get("QA"));
     }
