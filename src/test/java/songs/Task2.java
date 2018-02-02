@@ -1,6 +1,5 @@
 package songs;
 
-import javafx.scene.control.Button;
 import org.junit.Assert;
 
 public class Task2 {
@@ -10,11 +9,11 @@ public class Task2 {
         Person you = new Person();
 
         //---------------------------------
-
+/*
         Button theButton = new Button();
         theButton.setOnAction(
                 e -> new Result(() -> you.getDream().fulfill())
-        );
+        );*/
         Assert.assertFalse(you.isGlad());
         Assert.assertNull(you.getDream());
 

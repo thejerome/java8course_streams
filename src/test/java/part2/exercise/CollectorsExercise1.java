@@ -8,16 +8,31 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.*;
+import java.util.stream.Stream;
 
 public class CollectorsExercise1 {
 
     @Test
     public void testPersonToHisLongestJobDuration() {
 
-        Map<Person, Integer> collected = null;//getEmployees()
+        Map<Person, Integer> collected = getEmployees()
+                .stream()
+                .collect(Collectors
+                        .toMap(
+                                Employee::getPerson,
+                                employee -> employee.getJobHistory()
+                                        .stream()
+                                        .map(JobHistoryEntry::getDuration)
+                                        .reduce(Math::max)
+                                        .orElse(0)
+                        )
+                );
 
         Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
                 .put(new Person("John", "Galt", 20), 3)
@@ -39,7 +54,16 @@ public class CollectorsExercise1 {
     @Test
     public void testPersonToHisTotalJobDuration() {
 
-        Map<Person, Integer> collected = null;
+        Map<Person, Integer> collected = getEmployees()
+                .stream()
+                .collect(Collectors.toMap(
+                        Employee::getPerson,
+                        e -> e.getJobHistory()
+                                .stream()
+                                .map(JobHistoryEntry::getDuration)
+                                .reduce(Integer::sum)
+                                .orElse(0)
+                ));
 
 
         Map<Person, Integer> expected = ImmutableMap.<Person, Integer>builder()
@@ -60,11 +84,84 @@ public class CollectorsExercise1 {
         Assert.assertEquals(expected, collected);
     }
 
+    private class PersonWithJobHistory{
+
+        private String person;
+        private List<JobHistoryEntry> jobHistoryEntry;
+
+        PersonWithJobHistory(String person, List<JobHistoryEntry> jobHistoryEntry) {
+            this.person = person;
+            this.jobHistoryEntry = jobHistoryEntry;
+        }
+
+        public String getPerson() {
+            return person;
+        }
+
+        public void setPerson(String person) {
+            this.person = person;
+        }
+
+        public List<JobHistoryEntry> getJobHistoryEntry() {
+            return jobHistoryEntry;
+        }
+
+        public void setJobHistoryEntry(List<JobHistoryEntry> jobHistoryEntry) {
+            this.jobHistoryEntry = jobHistoryEntry;
+        }
+    }
+
     @Test
     public void testTotalJobDurationPerNameAndSurname(){
 
         //Implement custom Collector
-        Map<String, Integer> collected = null;
+        Map<String, Integer> collected = getEmployees()
+                .stream()
+                .flatMap(employee -> Stream.of(
+                        new PersonWithJobHistory(
+                                employee.getPerson().getFirstName(),
+                                employee.getJobHistory()),
+                        new PersonWithJobHistory(
+                                employee.getPerson().getLastName(),
+                                employee.getJobHistory())
+                        ))
+                .collect(new Collector<PersonWithJobHistory, HashMap<String, Integer>, HashMap<String, Integer>>() {
+                    @Override
+                    public Supplier<HashMap<String, Integer>> supplier() {
+                        return HashMap::new;
+                    }
+
+                    @Override
+                    public BiConsumer<HashMap<String, Integer>, PersonWithJobHistory> accumulator() {
+                        return (h, p) -> {
+                            if(h.containsKey(p.person))
+                                h.put(p.getPerson(), p.jobHistoryEntry
+                                    .stream().mapToInt(JobHistoryEntry::getDuration).sum() + h.get(p.person));
+                            else
+                                h.put(p.getPerson(), p.jobHistoryEntry
+                                        .stream().mapToInt(JobHistoryEntry::getDuration).sum());
+                        };
+                    }
+
+                    @Override
+                    public BinaryOperator<HashMap<String, Integer>> combiner() {
+                        return (map1, map2) -> {
+                            final HashMap<String, Integer> map = new HashMap<>(map2);
+                            map1.forEach((key, value) -> map.merge(key, value, (v1, v2) -> v1 + v2));
+                            return map;
+                        };
+                    }
+
+                    @Override
+                    public Function<HashMap<String, Integer>, HashMap<String, Integer>> finisher() {
+                        return HashMap::new;
+                    }
+
+                    @Override
+                    public Set<Characteristics> characteristics() {
+                        return Collections.emptySet();
+                    }
+                });
 
         Map<String, Integer> expected = ImmutableMap.<String, Integer>builder()
                 .put("John", 5 + 8 + 6 + 5 + 8 + 6 + 4 + 8 + 6 + 4 + 11 + 6 - 8 - 6)
