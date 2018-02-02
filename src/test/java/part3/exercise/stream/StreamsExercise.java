@@ -10,8 +10,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Comparator.comparingInt;
+import static java.util.function.BinaryOperator.maxBy;
 import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.assertEquals;
 
@@ -21,7 +24,7 @@ public class StreamsExercise {
     public void getAllJobHistoryEntries() {
         final List<Employee> employees = getEmployees();
 
-        final List<JobHistoryEntry> jobHistoryEntries = employees.stream() // TODO
+        final List<JobHistoryEntry> jobHistoryEntries = employees.stream() // DONE
                 .flatMap(e -> e.getJobHistory().stream())
                 .collect(Collectors.toList());
 
@@ -33,7 +36,7 @@ public class StreamsExercise {
         // sum all durations for all persons
         final List<Employee> employees = getEmployees();
 
-        final int sumDurations = employees.stream() // TODO
+        final int sumDurations = employees.stream() // DONE
                 .flatMap(e -> e.getJobHistory().stream())
                 .mapToInt(JobHistoryEntry::getDuration)
                 .sum();
@@ -71,7 +74,7 @@ public class StreamsExercise {
     public void indexPersonsByEmployer1() {
         final List<Employee> employees = getEmployees();
 
-        final Map<String, List<PersonEmployer>> index = employees.stream() // TODO
+        final Map<String, List<PersonEmployer>> index = employees.stream() // DONE
                 .flatMap(e -> e.getJobHistory().stream()
                         .map(j -> new PersonEmployer(e.getPerson(), j.getEmployer())))
                 .collect(Collectors.groupingBy(PersonEmployer::getEmployer));
@@ -83,12 +86,16 @@ public class StreamsExercise {
     public void indexPersonsByEmployer2() {
         final List<Employee> employees = getEmployees();
 
-        final Map<String, List<Person>> index = employees.stream() // TODO
+        final Map<String, List<Person>> index = employees.stream() // DONE
                 .flatMap(e -> e.getJobHistory().stream()
                         .map(j -> new PersonEmployer(e.getPerson(), j.getEmployer())))
                 .collect(Collectors.groupingBy(
                         PersonEmployer::getEmployer,
-                        Collectors.mapping(PersonEmployer::getPerson, Collectors.toList())));
+                        Collectors.mapping(
+                                PersonEmployer::getPerson,
+                                Collectors.toList())
+                        )
+                );
 
         assertEquals(11, index.get("epam").size());
     }
@@ -242,7 +249,23 @@ public class StreamsExercise {
         // Get person with max duration on given position
         final List<Employee> employees = getEmployees();
 
-        final Map<String, PersonPositionDuration> coolestPersonByPosition = null;// TODO
+        final Map<String, PersonPositionDuration> coolestPersonByPosition = // TODO
+        employees.stream()
+                .map(StreamsExercise::getPersonPositionIndex)
+                .flatMap(i -> i.getDurationByPositionIndex().entrySet().stream()
+                                .map(entry -> new PersonPositionDuration(
+                                        i.getPerson(),
+                                        entry.getKey(),
+                                        entry.getValue())
+                                )
+                )
+                .collect(toMap(
+                        PersonPositionDuration::getPosition,
+                        Function.identity(),
+                        (v1, v2) -> v1.getDuration() >= v2.getDuration() ? v1 : v2
+                        // BAD test! not working with '>' but working with '>='
+                ));
+
 
 
         assertEquals(new Person("John", "White", 22), coolestPersonByPosition.get("QA").getPerson());
