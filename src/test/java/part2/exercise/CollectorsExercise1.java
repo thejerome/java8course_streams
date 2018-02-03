@@ -9,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import static java.util.Comparator.comparingInt;
@@ -90,11 +91,14 @@ public class CollectorsExercise1 {
                                 e.getJobHistory().stream().mapToInt(
                                         JobHistoryEntry::getDuration).sum())
                 ))
-                .collect(toMap(
-                        Pair::getKey,
-                        Pair::getValue,
-                        (p1, p2) -> p1 + p2
-                ));
+                .collect(Collector.of(
+                        HashMap::new,
+                        (hm, p) -> hm.merge(p.getKey(), p.getValue(), Integer::sum),
+                        (hm1, hm2) -> {
+                            hm1.putAll(hm2);
+                            return hm1;
+                        }));
+
 
         Map<String, Integer> expected = ImmutableMap.<String, Integer>builder()
                 .put("John", 5 + 8 + 6 + 5 + 8 + 6 + 4 + 8 + 6 + 4 + 11 + 6 - 8 - 6)
