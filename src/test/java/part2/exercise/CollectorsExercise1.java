@@ -1,9 +1,16 @@
 package part2.exercise;
 
+import static java.util.stream.Collectors.toMap;
+
 import com.google.common.collect.ImmutableMap;
 import data.Employee;
 import data.JobHistoryEntry;
 import data.Person;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 import javafx.util.Pair;
 import org.junit.Assert;
@@ -19,7 +26,7 @@ public class CollectorsExercise1 {
     public void testPersonToHisLongestJobDuration() {
 
       Map<Person, Integer> collected = getEmployees().stream()
-                                                     .collect(Collectors.toMap(Employee::getPerson,
+                                                     .collect(toMap(Employee::getPerson,
                                                          p -> p.getJobHistory()
                                                                .stream()
                                                                .mapToInt(
@@ -49,7 +56,7 @@ public class CollectorsExercise1 {
     public void testPersonToHisTotalJobDuration() {
 
       Map<Person, Integer> collected = getEmployees().stream()
-                                                     .collect(Collectors.toMap(Employee::getPerson,
+                                                     .collect(toMap(Employee::getPerson,
                                                          p -> p.getJobHistory()
                                                                .stream()
                                                                .mapToInt(
@@ -79,28 +86,53 @@ public class CollectorsExercise1 {
     @Test
     public void testTotalJobDurationPerNameAndSurname(){
 
-      Map<String, Integer> collected = getEmployees().stream()
-                                                     .map(e ->
-                                                         new Pair<>(e.getPerson(),
-                                                             e.getJobHistory()
-                                                              .stream()
-                                                              .mapToInt(
-                                                                  JobHistoryEntry::getDuration)
-                                                              .sum()))
-                                                     .flatMap(pair -> Stream.of(
-                                                         new Pair<>(pair.getKey()
-                                                                        .getFirstName(),
-                                                             pair.getValue()),
-                                                         new Pair<>(pair.getKey()
-                                                                        .getLastName(),
-                                                             pair.getValue())
+      Map<String, Integer> collected =
+          getEmployees().stream()
+                        .collect(
+                            new Collector<Employee, Map<String, Integer>, Map<String, Integer>>() {
+                              @Override
+                              public Supplier<Map<String, Integer>> supplier() {
+                                return HashMap::new;
+                              }
 
-                                                     ))
-                                                     .collect(Collectors.toMap(Pair::getKey,
-                                                         Pair::getValue,
-                                                         (a, b) -> a + b));
+                              @Override
+                              public BiConsumer<Map<String, Integer>, Employee> accumulator() {
+                                return (m, e) -> {
+                                  String firstName = e.getPerson()
+                                                      .getFirstName();
+                                  int sum = e.getJobHistory()
+                                             .stream()
+                                             .mapToInt(JobHistoryEntry::getDuration)
+                                             .sum();
+                                  m.put(firstName, m.getOrDefault(firstName, 0) + sum);
+                                  String lastName = e.getPerson()
+                                                     .getLastName();
+                                  m.put(lastName, m.getOrDefault(lastName, 0) + sum);
+                                };
+                              }
 
-        Map<String, Integer> expected = ImmutableMap.<String, Integer>builder()
+                              @Override
+                              public BinaryOperator<Map<String, Integer>> combiner() {
+                                return (m1, m2) -> {
+                                  m1.forEach((key, value) -> m2.put(key,
+                                      m2.getOrDefault(key, 0) + value));
+                                  return m2;
+                                };
+                              }
+
+                              @Override
+                              public Function<Map<String, Integer>, Map<String, Integer>> finisher() {
+                                throw new UnsupportedOperationException();
+                              }
+
+                              @Override
+                              public Set<Characteristics> characteristics() {
+                                return new HashSet<>(
+                                    Collections.singletonList(Characteristics.IDENTITY_FINISH));
+                              }
+                            });
+
+      Map<String, Integer> expected = ImmutableMap.<String, Integer>builder()
                 .put("John", 5 + 8 + 6 + 5 + 8 + 6 + 4 + 8 + 6 + 4 + 11 + 6 - 8 - 6)
                 .put("Bob", 8 + 6)
                 .put("Galt", 5 + 5 + 4 + 4)
