@@ -23,7 +23,9 @@ public class StreamsExercise1 {
     @Test
     public void getAllEpamEmployees() {
         List<Employee> epamEmployees = generateEmployeeList().stream()
-                .filter(e -> e.getJobHistory().contains("epam"))
+                .filter(e -> e.getJobHistory()
+                        .stream()
+                        .allMatch(j -> j.toString().equals("epam")))
                 .collect(Collectors.toList());
 
         assertFalse(epamEmployees.toString().contains("employer=google"));
