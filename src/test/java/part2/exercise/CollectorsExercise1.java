@@ -9,6 +9,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -96,9 +98,15 @@ public class CollectorsExercise1 {
                                 pair.getValue())
 
                 ))
-                .collect(Collectors.toMap(Pair::getKey,
-                        Pair::getValue,
-                        (a, b) -> a + b));
+                .collect(Collector.of(HashMap::new,
+                        (map, entry) -> map.merge(entry.getKey(), entry.getValue(), Integer::sum),
+                        (BinaryOperator<Map<String, Integer>>) (map1, map2) -> {
+                            HashMap<String, Integer> hashMap = new HashMap<>(map1);
+                            for (String s : map2.keySet()) {
+                                hashMap.putIfAbsent(s, map2.get(s));
+                            }
+                            return hashMap;
+                        }));
 
         Map<String, Integer> expected = ImmutableMap.<String, Integer>builder()
                 .put("John", 5 + 8 + 6 + 5 + 8 + 6 + 4 + 8 + 6 + 4 + 11 + 6 - 8 - 6)
